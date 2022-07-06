@@ -20,7 +20,7 @@ import { GatewayService } from './gateway.service';
           subgraphs: [
             {
               name: 'auth',
-              url: 'http://localhost:4010/graphql',
+              url: 'http://auth:4010/graphql',
             },
           ],
         }),
