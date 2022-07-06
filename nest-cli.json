@@ -36,7 +36,6 @@
         "tsConfigPath": "libs/common/tsconfig.lib.json"
       }
     },
-
     "prisma": {
       "type": "library",
       "root": "libs/prisma",
@@ -44,6 +43,15 @@
       "sourceRoot": "libs/prisma/src",
       "compilerOptions": {
         "tsConfigPath": "libs/prisma/tsconfig.lib.json"
+      }
+    },
+    "gateway": {
+      "type": "application",
+      "root": "apps/gateway",
+      "entryFile": "main",
+      "sourceRoot": "apps/gateway/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/gateway/tsconfig.app.json"
       }
     }
   }
