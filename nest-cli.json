@@ -26,6 +26,25 @@
       "compilerOptions": {
         "tsConfigPath": "apps/auth/tsconfig.app.json"
       }
+    },
+    "common": {
+      "type": "library",
+      "root": "libs/common",
+      "entryFile": "index",
+      "sourceRoot": "libs/common/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/common/tsconfig.lib.json"
+      }
+    },
+
+    "prisma": {
+      "type": "library",
+      "root": "libs/prisma",
+      "entryFile": "index",
+      "sourceRoot": "libs/prisma/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/prisma/tsconfig.lib.json"
+      }
     }
   }
 }
