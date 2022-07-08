@@ -24,7 +24,7 @@ export class EmailsService {
         subject: 'Welcome to Carea! Confirm your Email',
         template: './confirmation',
         context: {
-          name: 'user.name',
+          name: 'George',
           url,
         },
       });
