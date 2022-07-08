@@ -8,6 +8,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { DatabaseModule } from 'libs/database/database.module';
+import { AUthController } from './auth.controller';
 import { AuthResolver } from './auth.resolver';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -42,5 +43,6 @@ import { UsersModule } from './users/users.module';
   ],
   providers: [AuthService, AuthResolver, JwtStrategy, LocalStrategy],
   exports: [PassportModule],
+  controllers:[AUthController]
 })
 export class AuthModule {}

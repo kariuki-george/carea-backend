@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Types } from 'mongoose';
+
 import { LoginResponse } from './res/login.res';
-import { User } from './users/entities/user.entity';
 
 export interface TokenPayload {
   userId: string;

@@ -1,28 +1,42 @@
 services:
   auth:
-    build: 
+    build:
       context: .
       dockerfile: ./apps/auth/Dockerfile
       target: development
-    command: npm run start:dev auth
+    command: yarn start:dev auth
     env_file:
-      - ./apps/auth/.env
+      - .env
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
     ports:
-      - "4010:4010"
+      - '4010:4010'
+    depends_on:
+      - email
 
   gateway:
-    build: 
+    build:
       context: .
       dockerfile: ./apps/auth/Dockerfile
       target: development
-    command: npm run start:dev gateway
+    command: yarn start:dev gateway
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
     ports:
-      - "4000:4000"
+      - '4000:4000'
     depends_on:
       - auth
+
+  email:
+    build:
+      context: .
+      dockerfile: ./apps/emails/Dockerfile
+      target: development
+    command: yarn start:dev email
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - '4020:4020'
