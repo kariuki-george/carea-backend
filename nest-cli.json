@@ -6,7 +6,21 @@
   "root": "apps/carea-backend",
   "compilerOptions": {
     "webpack": true,
-    "tsConfigPath": "apps/carea-backend/tsconfig.app.json"
+    "tsConfigPath": "apps/carea-backend/tsconfig.app.json",
+    "plugins": [
+      {
+        "name": "@nestjs/graphql",
+        "options": {
+          "typeFileNameSuffix": [
+            ".input.ts",
+            ".res.ts",
+            ".entity.ts",
+            ".dto.ts"
+          ],
+          "introspectComments": true
+        }
+      }
+    ]
   },
   "projects": {
     "carea-backend": {
