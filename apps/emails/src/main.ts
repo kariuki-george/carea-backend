@@ -6,7 +6,7 @@ import { EmailsModule } from './emails.module';
 async function bootstrap() {
   const app = await NestFactory.create(EmailsModule);
   const rmqService = app.get<RmqService>(RmqService);
-  app.connectMicroservice<RmqOptions>(rmqService.getOptions('EMAIL', true));
+  app.connectMicroservice<RmqOptions>(rmqService.getOptions('EMAIL'));
   app.startAllMicroservices();
 }
 bootstrap();

@@ -5,7 +5,7 @@ import { Whoami } from './whoami.decorator';
 import { MessagePattern } from '@nestjs/microservices';
 
 @Controller()
-export class AUthController {
+export class AuthController {
   @UseGuards(JwtAuthGuard)
   @MessagePattern('validate_user')
   async validateUser(@Whoami(true) user: User) {

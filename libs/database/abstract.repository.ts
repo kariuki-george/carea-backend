@@ -14,12 +14,12 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
 
   constructor(
     protected readonly model: Model<TDocument>,
-    private readonly connection: Connection,
+    private readonly connection: Connection
   ) {}
 
   async create(
     document: Omit<TDocument, '_id'>,
-    options?: SaveOptions,
+    options?: SaveOptions
   ): Promise<TDocument> {
     const createdDocument = new this.model({
       ...document,
@@ -35,7 +35,7 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
 
     if (!document) {
       this.logger.warn('Document not found with filterQuery', filterQuery);
-      throw new NotFoundException('Document not found.');
+      return null;
     }
 
     return document;
@@ -43,7 +43,7 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
 
   async findOneAndUpdate(
     filterQuery: FilterQuery<TDocument>,
-    update: UpdateQuery<TDocument>,
+    update: UpdateQuery<TDocument>
   ) {
     const document = await this.model.findOneAndUpdate(filterQuery, update, {
       lean: true,
@@ -60,7 +60,7 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
 
   async upsert(
     filterQuery: FilterQuery<TDocument>,
-    document: Partial<TDocument>,
+    document: Partial<TDocument>
   ) {
     return this.model.findOneAndUpdate(filterQuery, document, {
       lean: true,

@@ -50,15 +50,7 @@
         "tsConfigPath": "libs/common/tsconfig.lib.json"
       }
     },
-    "prisma": {
-      "type": "library",
-      "root": "libs/prisma",
-      "entryFile": "index",
-      "sourceRoot": "libs/prisma/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/prisma/tsconfig.lib.json"
-      }
-    },
+
     "gateway": {
       "type": "application",
       "root": "apps/gateway",
@@ -74,7 +66,14 @@
       "entryFile": "main",
       "sourceRoot": "apps/emails/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/emails/tsconfig.app.json"
+        "tsConfigPath": "apps/emails/tsconfig.app.json",
+        "watchAssets": true,
+        "assets": [
+          {
+            "include": "../templates/**/*",
+            "outDir": "dist/apps/emails/templates"
+          }
+        ]
       }
     }
   }
