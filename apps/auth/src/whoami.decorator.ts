@@ -1,25 +1,18 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { Context, GqlExecutionContext } from '@nestjs/graphql';
+import { Context, GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
+import { GraphQLType } from 'graphql';
 import { User } from './users/entities/user.entity';
 
-export const getCurrentUserByContext = (
-  context: ExecutionContext,
-  isRest = false
-): User => {
-  /**
-   * convert context from rest to graphql context
-   */
-  if (context.getType() === 'http') {
-    if (isRest) {
-      return context.switchToHttp().getRequest().user;
-    }
-    const ctx = GqlExecutionContext.create(context);
-    return ctx.getContext().req.user;
+export const getCurrentUserByContext = (context: ExecutionContext): User => {
+  if (context.getType<GqlContextType>() === 'graphql') {
+    //TODO: proper user extraction
+  } else if (context.getType() === 'rpc') {
+    return context.switchToRpc().getData().user;
   }
 };
 
 export const Whoami = createParamDecorator(
-  (rest: boolean, context: ExecutionContext) => {
-    getCurrentUserByContext(context, rest);
+  (_data: unknown, context: ExecutionContext) => {
+    return getCurrentUserByContext(context);
   }
 );

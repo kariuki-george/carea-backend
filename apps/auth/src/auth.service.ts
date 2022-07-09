@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
 import { LoginResponse } from './res/login.res';
+import { UserRoles } from './users/entities/user.entity';
 
 export interface TokenPayload {
   userId: string;
@@ -16,6 +17,12 @@ export class AuthService {
     private readonly configService: ConfigService
   ) {}
   async login(context: any): Promise<typeof LoginResponse> {
+    if (context.user.role === UserRoles.BUYER) {
+      return {
+        error: true,
+        message: 'Account not authorized to access this resource',
+      };
+    }
     try {
       const user = context.user;
       const tokenPayload: TokenPayload = {
@@ -44,7 +51,10 @@ export class AuthService {
 
       return {
         accessToken: token,
-        user,
+        user: {
+          ...user,
+          userId: user._id,
+        },
       };
     } catch (error) {
       return {

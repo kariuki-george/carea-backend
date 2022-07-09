@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller,  } from '@nestjs/common';
 import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
 import { EmailsService } from './emails.service';
 
@@ -7,14 +7,15 @@ export class EmailsController {
   constructor(private readonly emailsService: EmailsService) {}
 
   @EventPattern('user_verifyEmail')
-  async handleUserVerifyEmail(
+  handleUserVerifyEmail(@Payload() data: any, @Ctx() context: RmqContext) {
+    return this.emailsService.sendUserConfirmation(data, context);
+  }
+
+  @EventPattern('user_passwordReset')
+  handleChangePasswordRequest(
     @Payload() data: any,
     @Ctx() context: RmqContext
   ) {
-    const input = JSON.parse(data);
-
-    this.emailsService.sendUserConfirmation({
-      ...input.data,
-    },context);
+    return this.emailsService.sendChangePassword(data, context);
   }
 }

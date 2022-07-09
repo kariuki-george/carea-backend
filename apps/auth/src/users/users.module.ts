@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { CacheModule, Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersResolver } from './users.resolver';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -6,7 +6,7 @@ import { User, UserSchema } from './entities/user.entity';
 import { UsersRepo } from './users.repository';
 import { RmqModule } from 'libs/rmq/rmq.module';
 import { EMAIL_SERVICE } from './constants/services';
-import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from 'libs/auth/auth.module';
 
 @Module({
   providers: [UsersResolver, UsersService, UsersRepo],
@@ -21,6 +21,8 @@ import { ConfigModule } from '@nestjs/config';
     RmqModule.register({
       name: EMAIL_SERVICE,
     }),
+    CacheModule.register(),
+    AuthModule,
   ],
 })
 export class UsersModule {}

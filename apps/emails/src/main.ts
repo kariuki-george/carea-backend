@@ -8,5 +8,6 @@ async function bootstrap() {
   const rmqService = app.get<RmqService>(RmqService);
   app.connectMicroservice<RmqOptions>(rmqService.getOptions('EMAIL'));
   app.startAllMicroservices();
+ 
 }
 bootstrap();

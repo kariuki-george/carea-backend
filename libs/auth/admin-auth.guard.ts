@@ -11,7 +11,7 @@ import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
 import { AuthenticationError } from 'apollo-server-express';
 
 @Injectable()
-export class JwtAuthGuard implements CanActivate {
+export class AdminAuthGuard implements CanActivate {
   constructor(@Inject(AUTH_SERVICE) private authClient: ClientProxy) {}
 
   canActivate(
@@ -25,9 +25,17 @@ export class JwtAuthGuard implements CanActivate {
       })
       .pipe(
         tap((res) => {
+          if (res.role === 'BUYER') {
+            throw new AuthenticationError(
+              'Account not authorized to access this resource'
+            );
+          }
           this.addUser(res, context);
         }),
-        catchError(() => {
+        catchError((e) => {
+          if (e instanceof AuthenticationError) {
+            throw new AuthenticationError(e.message);
+          }
           throw new AuthenticationError('Authentication required');
         })
       );

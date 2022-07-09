@@ -1,10 +1,11 @@
-import { createUnionType, InterfaceType, ObjectType } from '@nestjs/graphql';
+import { createUnionType, ObjectType } from '@nestjs/graphql';
 import { ErrorInterface as Error } from '@carea/common/interfaces/error.entity';
 import { User } from '../users/entities/user.entity';
 
 @ObjectType()
 class Login {
   user: User;
+  
 
   accessToken: string;
 }

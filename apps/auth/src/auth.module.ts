@@ -2,7 +2,7 @@ import {
   ApolloFederationDriver,
   ApolloFederationDriverConfig,
 } from '@nestjs/apollo';
-import { Module } from '@nestjs/common';
+import { CacheModule, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { JwtModule } from '@nestjs/jwt';
@@ -20,6 +20,7 @@ import { UsersModule } from './users/users.module';
 @Module({
   imports: [
     RmqModule,
+
     GraphQLModule.forRoot<ApolloFederationDriverConfig>({
       driver: ApolloFederationDriver,
       cors: {
@@ -27,6 +28,7 @@ import { UsersModule } from './users/users.module';
       },
       autoSchemaFile: true,
       context: ({ req, res }) => ({ req, res }),
+      introspection: true,
     }),
     ConfigModule.forRoot({
       isGlobal: true,
@@ -47,6 +49,7 @@ import { UsersModule } from './users/users.module';
       }),
       inject: [ConfigService],
     }),
+    CacheModule.register(),
   ],
   providers: [AuthService, AuthResolver, JwtStrategy, LocalStrategy],
   exports: [PassportModule],
