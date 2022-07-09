@@ -72,10 +72,24 @@ export class UsersResolver {
     return this.usersService.createAddress(createAddress);
   }
 
+  /**
+   * Update user profile
+   */
+
   @UseGuards(JwtAuthGuard)
   @Mutation(() => User)
   updateProfile(@Args('profile') profile: UpdateUserInput): Promise<User> {
     return this.usersService.updateProfile(profile);
+  }
+
+  /**
+   * Resend Verify email.
+   */
+
+  @UseGuards(JwtAuthGuard)
+  @Mutation(() => String)
+  resendVerifyEmail(@Args('userEmail') email: string): Promise<string> {
+    return this.usersService.resendVerifyEmail(email);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -84,13 +98,16 @@ export class UsersResolver {
     return 'boop!';
   }
 
+  /**
+   * Update user role from Buyer to Subadmin
+   */
+
   @UseGuards(AdminAuthGuard)
   @Mutation(() => UpdateRoleResponse)
   updateRole(
     @Args('userId') userId: string,
     @Context() context: any
   ): Promise<typeof UpdateRoleResponse> {
-    
     return this.usersService.updateRole(userId, context.user);
   }
 }

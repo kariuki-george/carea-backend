@@ -1,1 +1,2 @@
 1. Hide password
+2. clean userId
