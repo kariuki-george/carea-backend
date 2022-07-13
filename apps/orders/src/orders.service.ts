@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {  AddMessageInput } from './dto/addMessage.dto';
+import { AddMessageInput } from './dto/addMessage.dto';
 import { CreateChatInput } from './dto/createChat.dto';
 import { CreateOfferInput } from './dto/createOffer.dto';
 import { UpdateOfferInput } from './dto/updateOffer.dto';
@@ -8,9 +8,11 @@ import { Message } from './entities/messages.entity';
 import { Offer, OfferStatus } from './entities/Offer.entity';
 import { PrismaService } from './prisma.service';
 import { CreateOfferResponse } from './res/createOffer.res';
+import * as Chance from 'chance';
 
 @Injectable()
 export class OrdersService {
+  private readonly chance = new Chance();
   constructor(private prismaService: PrismaService) {}
   getHello(): string {
     return 'Hello World!';
@@ -53,7 +55,8 @@ export class OrdersService {
   }
 
   getOffers(input: Partial<Offer>): Promise<Offer[]> {
-    return this.prismaService.offer.findMany({ where: { ...input } });
+    const { status, ...data } = input;
+    return this.prismaService.offer.findMany({ where: data });
   }
 
   async createChat({ userId, carId }: CreateChatInput): Promise<Chat> {
@@ -80,23 +83,39 @@ export class OrdersService {
     });
   }
 
-  getChatsByUserId(userId: string):Promise<Chat[]> {
+  getChatsByUserId(userId: string): Promise<Chat[]> {
     return this.prismaService.chat.findMany({
       where: { userId },
     });
   }
 
-  getMessages(chatId: string):Promise<Message[]> {
+  getMessages(chatId: string): Promise<Message[]> {
     return this.prismaService.message.findMany({ where: { chatId } });
   }
 
-  getChatsCount():Promise<number> {
+  getChatsCount(): Promise<number> {
     return this.prismaService.chat.count();
   }
-  getMessagesCount(chatId: string):Promise<number> {
+  getMessagesCount(chatId: string): Promise<number> {
     return this.prismaService.message.count({ where: { chatId } });
   }
-  getChats():Promise<Chat[]>{
-    return this.prismaService.chat.findMany()
+  getChats(): Promise<Chat[]> {
+    return this.prismaService.chat.findMany();
+  }
+
+  acceptAndCreateOfferToken(id: string): Promise<Offer> {
+    const token = this.chance.hash();
+    return this.prismaService.offer.update({
+      where: { id },
+      data: { token, status: OfferStatus.ACCEPTED },
+    });
+  }
+  private validateToken(token: string, userId: string): Promise<Offer> {
+    return this.prismaService.offer.findFirst({
+      where: { AND: { token, userId } },
+    });
+  }
+  private deleteToken(id: string) {
+    return this.prismaService.offer.delete({ where: { id } });
   }
 }

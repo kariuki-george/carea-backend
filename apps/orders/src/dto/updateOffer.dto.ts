@@ -13,5 +13,5 @@ export class UpdateOfferInput {
   amount?: number;
   @Field(() => OfferStatus)
   status?: OfferStatus;
-  id:string
+  id: string;
 }

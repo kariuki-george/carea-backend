@@ -66,4 +66,11 @@ export class OrdersResolver {
   getChats(): Promise<Chat[]> {
     return this.ordersService.getChats();
   }
+
+  @Mutation(() => Offer)
+  acceptAndCreateOfferToken(@Args('offerId') offerId: string): Promise<Offer> {
+    return this.ordersService.acceptAndCreateOfferToken(offerId);
+  }
+
+  
 }

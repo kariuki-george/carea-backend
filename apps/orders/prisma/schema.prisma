@@ -36,6 +36,7 @@ model Offer {
   amount Int
   userId String
   carId String
+  token String?
 }
 
 model Chat {
