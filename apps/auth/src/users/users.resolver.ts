@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, Int, Context } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Context } from '@nestjs/graphql';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { CreateUserInput } from './dto/create-user.input';
@@ -13,6 +13,7 @@ import { UseGuards } from '@nestjs/common';
 import { AdminAuthGuard } from 'libs/auth/admin-auth.guard';
 import { JwtAuthGuard } from 'libs/auth/jwt-auth.guard';
 import { UpdateRoleResponse } from './res/updateRole.res';
+import { Address } from './entities/address.entity';
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -65,10 +66,10 @@ export class UsersResolver {
    *Create an address for the user. A user can create multiple addresses sequentially.
    */
   @UseGuards(JwtAuthGuard)
-  @Mutation(() => User)
+  @Mutation(() => Address)
   createAddress(
     @Args('createAddress') createAddress: CreateAddressDto
-  ): Promise<User> {
+  ): Promise<Address> {
     return this.usersService.createAddress(createAddress);
   }
 

@@ -1,6 +1,5 @@
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import { CreateUserInput } from './dto/create-user.input';
-import { UsersRepo } from './users.repository';
 import * as argon2 from 'argon2';
 import { AuthenticationError, UserInputError } from 'apollo-server-express';
 import { User, UserRoles } from './entities/user.entity';
@@ -18,11 +17,13 @@ import { ChangePasswordDto } from './dto/change-password.input';
 import { VerifyEmailDto } from './dto/verify-email.input';
 import { UpdateUserInput } from './dto/update-user.input';
 import { UpdateRoleResponse } from './res/updateRole.res';
+import { PrismaService } from './prisma.service';
+import { Address } from './entities/address.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
-    private readonly usersRepo: UsersRepo,
+    private readonly prismaService: PrismaService,
     @Inject(EMAIL_SERVICE) private readonly emailClient: ClientProxy,
     @Inject(CACHE_MANAGER) private cacheService: Cache
   ) {}
@@ -30,7 +31,7 @@ export class UsersService {
   async validateUser(email: string, password: string) {
     let user: User;
 
-    user = await this.usersRepo.findOne({ email });
+    user = await this.prismaService.users.findUnique({ where: { email } });
 
     if (!user) {
       throw new UserInputError('User not found');
@@ -43,41 +44,53 @@ export class UsersService {
     if (!passwordIsValid) {
       throw new UserInputError('Credentials are not valid');
     }
+
     return user;
   }
   getUser(getUserArgs: Partial<User>) {
-    return this.usersRepo.findOne(getUserArgs);
+    const { email, id } = getUserArgs;
+    return this.prismaService.users.findUnique({
+      where: {
+        email,
+        id,
+      },
+    });
   }
 
   findAll(): Promise<User[]> {
-    return this.usersRepo.find({});
+    return this.prismaService.users.findMany();
   }
 
   async createUser(input: CreateUserInput): Promise<typeof CreateUserResponse> {
     /**validate email  */
-
-    const user = await this.usersRepo.findOne({
-      email: input.email,
-    });
-
-    if (user) {
+    let user: User;
+    try {
+      user = await this.prismaService.users.create({
+        data: {
+          email: input.email,
+          password: await argon2.hash(input.password),
+        },
+      });
+    } catch (error) {
+      if (error.code === 'P2002') {
+        return {
+          error: true,
+          message: 'Email already in use',
+        };
+      }
+      console.log(error);
       return {
         error: true,
-        message: 'Email already in use!',
+        message: 'An error occurred! ',
       };
     }
-
-    const newUser = await this.usersRepo.create({
-      ...input,
-      password: await argon2.hash(input.password),
-    });
 
     /**
      * send verify email
      */
-    await this.sendVerifyEmail(newUser.email);
+    await this.sendVerifyEmail(user.email);
 
-    return newUser;
+    return user;
   }
 
   private async sendEmail(pattern: string, data: {}) {
@@ -105,10 +118,10 @@ export class UsersService {
     }
 
     await this.cacheService.del(token);
-    await this.usersRepo.findOneAndUpdate(
-      { email },
-      { $set: { verified: true } }
-    );
+    await this.prismaService.users.update({
+      where: { email },
+      data: { verified: true },
+    });
     return {
       success: true,
     };
@@ -181,42 +194,33 @@ export class UsersService {
      * update user password
      */
 
-    await this.usersRepo.findOneAndUpdate(
-      { email },
-      {
-        $set: {
-          password: await argon2.hash(password),
-        },
-      }
-    );
+    await this.prismaService.users.update({
+      where: { email },
+      data: {
+        password: await argon2.hash(password),
+      },
+    });
 
     return {
       success: true,
     };
   }
 
-  createAddress({ name, details, userId }: CreateAddressDto): Promise<User> {
-    return this.usersRepo.findOneAndUpdate(
-      { _id: new Types.ObjectId(userId) },
-      {
-        $push: {
-          address: {
-            name,
-            details,
-          },
-        },
-      }
-    );
+  createAddress({ name, details, userId }: CreateAddressDto): Promise<Address> {
+    return this.prismaService.addresses.create({
+      data: {
+        details,
+        name,
+        userId,
+      },
+    });
   }
+
   updateProfile(profile: UpdateUserInput): Promise<User> {
-    return this.usersRepo.findOneAndUpdate(
-      { _id: new Types.ObjectId(profile.userId)! },
-      {
-        $set: {
-          ...profile,
-        },
-      }
-    );
+    return this.prismaService.users.update({
+      where: { id: profile.userId },
+      data: profile,
+    });
   }
 
   async updateRole(
@@ -234,14 +238,12 @@ export class UsersService {
       };
     }
 
-    await this.usersRepo.findOneAndUpdate(
-      { _id: userId },
-      {
-        $set: {
-          role: UserRoles.SUBADMIN,
-        },
-      }
-    );
+    await this.prismaService.users.update({
+      where: { id: userId },
+      data: {
+        role: UserRoles.SUBADMIN,
+      },
+    });
     return {
       success: true,
     };

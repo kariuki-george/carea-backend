@@ -1,7 +1,9 @@
-import { ObjectType, HideField, Field, ID } from '@nestjs/graphql';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { AbstractDocument } from 'libs/database/abstract.schema';
-import mongoose, { Document, Types } from 'mongoose';
+import {
+  ObjectType,
+  Field,
+  registerEnumType,
+  HideField,
+} from '@nestjs/graphql';
 
 export enum UserRoles {
   ADMIN = 'ADMIN',
@@ -9,57 +11,28 @@ export enum UserRoles {
   SUBADMIN = 'SUBADMIN',
 }
 
-import { Address, AddressSchema } from './address.entity';
+registerEnumType(UserRoles, {
+  name: 'UserRoles',
+});
 
-@Schema({ versionKey: false })
 @ObjectType()
-export class User extends AbstractDocument {
-  /**
-   * User unique email
-   */
-  @Prop()
+export class User {
+  id: string;
+
   email: string;
 
-  @HideField()
-  @Prop()
-  password: string;
-
-  /**
-   * user's firstName
-   */
-  @Prop()
   firstName?: string;
 
-  /**
-   * user's lastName
-   */
-  @Prop()
   lastName?: string;
+  @HideField()
+  password?: string;
 
   /**
    * Check if a user's email is verified
    */
 
-  @Prop({ default: false })
   verified?: boolean;
 
-  /**
-   * User's address list
-   */
-  @Field(() => [Address], { description: "User's address list" })
-  @Prop({ type: [AddressSchema] })
-  address?: [Address];
-
-  /**
-   * user's unique id
-   */
-  userId?: string;
-
-  @Prop({ default: UserRoles.BUYER })
-  @Field(() => String)
-  role?: UserRoles;
+  @Field(() => UserRoles)
+  role?: string;
 }
-
-export type UserDocument = User & Document;
-
-export const UserSchema = SchemaFactory.createForClass(User);

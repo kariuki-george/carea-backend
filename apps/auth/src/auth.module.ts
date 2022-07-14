@@ -8,7 +8,6 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import * as Joi from 'joi';
-import { DatabaseModule } from 'libs/database/database.module';
 import { RmqModule } from 'libs/rmq/rmq.module';
 import { AuthController } from './auth.controller';
 import { AuthResolver } from './auth.resolver';
@@ -40,7 +39,7 @@ import { UsersModule } from './users/users.module';
     }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
 
-    DatabaseModule,
+    
     UsersModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
