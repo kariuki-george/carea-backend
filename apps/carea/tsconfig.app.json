@@ -1,8 +1,9 @@
 {
   "extends": "../../tsconfig.json",
+  "baseUrl": "./",
   "compilerOptions": {
     "declaration": false,
-    "outDir": "../../dist/apps/carea-backend"
+    "outDir": "../../dist/apps/carea"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]

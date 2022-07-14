@@ -1,12 +1,12 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "apps/carea-backend/src",
+  "sourceRoot": "apps/carea/src",
   "monorepo": true,
-  "root": "apps/carea-backend",
+  "root": "apps/carea",
   "compilerOptions": {
     "webpack": true,
-    "tsConfigPath": "apps/carea-backend/tsconfig.app.json",
+    "tsConfigPath": "apps/carea/tsconfig.app.json",
     "plugins": [
       {
         "name": "@nestjs/graphql",
@@ -23,13 +23,13 @@
     ]
   },
   "projects": {
-    "carea-backend": {
+    "carea": {
       "type": "application",
-      "root": "apps/carea-backend",
+      "root": "apps/carea",
       "entryFile": "main",
-      "sourceRoot": "apps/carea-backend/src",
+      "sourceRoot": "apps/carea/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/carea-backend/tsconfig.app.json"
+        "tsConfigPath": "apps/carea/tsconfig.app.json"
       }
     },
     "auth": {
@@ -50,7 +50,6 @@
         "tsConfigPath": "libs/common/tsconfig.lib.json"
       }
     },
-
     "gateway": {
       "type": "application",
       "root": "apps/gateway",
@@ -74,6 +73,15 @@
             "outDir": "dist/apps/emails/templates"
           }
         ]
+      }
+    },
+    "orders": {
+      "type": "application",
+      "root": "apps/orders",
+      "entryFile": "main",
+      "sourceRoot": "apps/orders/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/orders/tsconfig.app.json"
       }
     }
   }

@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+   output   = "./../../../node_modules/@prisma/carea/client"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+
+enum CarCondition {
+  NEW
+  USED
+}
+
+model category {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  imageUrl String
+  name     String 
+  cars    car[]
+
+  @@unique([name])
+}
+
+model review {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  rating Float?
+  name String?
+  review String?
+  userId  String
+  car   car @relation(fields: [carId], references: [id])
+  carId String @db.ObjectId
+}
+
+model car {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  checkout   Boolean @default(false)
+  condition  CarCondition @default(NEW)
+  desc       String
+  gallery    String[]
+  imageUrl   String
+  name       String   
+  price      Int
+  publish    Boolean @default(false)
+  stock      Int
+  category    category @relation(fields: [categoryId], references: [id])
+  categoryId   String  @db.ObjectId  
+  reviews      review[]
+  @@unique([name])
+}
+
