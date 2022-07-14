@@ -11,7 +11,7 @@ import * as Chance from 'chance';
 import { Cache } from 'cache-manager';
 import { VerifyEmailResponse } from './res/verifyEmail.res';
 import { ChangePasswordRequestResponse } from './res/changePasswordRequest.res';
-import { Types } from 'mongoose';
+
 import { CreateAddressDto } from './dto/create-address.input';
 import { ChangePasswordDto } from './dto/change-password.input';
 import { VerifyEmailDto } from './dto/verify-email.input';
@@ -217,9 +217,10 @@ export class UsersService {
   }
 
   updateProfile(profile: UpdateUserInput): Promise<User> {
+    const { userId, ...data } = profile;
     return this.prismaService.users.update({
       where: { id: profile.userId },
-      data: profile,
+      data,
     });
   }
 
