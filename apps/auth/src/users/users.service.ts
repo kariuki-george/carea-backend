@@ -249,4 +249,8 @@ export class UsersService {
       success: true,
     };
   }
+
+  getAddressesByUserId(userId: string): Promise<Address[]> {
+    return this.prismaService.addresses.findMany();
+  }
 }

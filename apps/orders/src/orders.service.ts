@@ -9,6 +9,8 @@ import { Offer, OfferStatus } from './entities/Offer.entity';
 import { PrismaService } from './prisma.service';
 import { CreateOfferResponse } from './res/createOffer.res';
 import * as Chance from 'chance';
+import { CreateOrderInput } from './dto/createOrder.dto';
+import { Prisma } from '@prisma/orders/client';
 
 @Injectable()
 export class OrdersService {
@@ -104,18 +106,62 @@ export class OrdersService {
   }
 
   acceptAndCreateOfferToken(id: string): Promise<Offer> {
-    const token = this.chance.hash();
     return this.prismaService.offer.update({
       where: { id },
-      data: { token, status: OfferStatus.ACCEPTED },
+      data: { status: OfferStatus.ACCEPTED },
     });
   }
   private validateToken(token: string, userId: string): Promise<Offer> {
     return this.prismaService.offer.findFirst({
-      where: { AND: { token, userId } },
+      where: { AND: { id: token, userId } },
     });
   }
   private deleteToken(id: string) {
     return this.prismaService.offer.delete({ where: { id } });
   }
+
+  async createOrder(input: CreateOrderInput): Promise<{}> {
+    const { token, ...data } = input;
+    const order = await this.prismaService.order.create({ data });
+    //if token, validate it
+    let validOffer: Prisma.OfferMaxAggregateOutputType;
+    if (token) {
+      validOffer = await this.prismaService.offer.findUnique({
+        where: { id: input.token },
+      });
+    }
+
+    if (validOffer && !validOffer.orderId) {
+      await this.prismaService.order.update({
+        where: { id: order.id },
+        data: {
+          offer: {
+            connect: {
+              offerId: validOffer.id,
+            },
+          },
+        },
+      });
+    } else {
+      if (!validOffer) {
+        return {
+          error: true,
+          message: "Token doesn't exist",
+        };
+      }
+      if (validOffer.orderId) {
+        return {
+          error: true,
+          message: 'Token already used',
+        };
+      }
+    }
+    return order;
+  }
+
+  getOrders() {
+    //TODO: perform a filter
+    return this.prismaService.order.findMany();
+  }
+ 
 }

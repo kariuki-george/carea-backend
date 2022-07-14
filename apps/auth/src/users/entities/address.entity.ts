@@ -8,4 +8,6 @@ export class Address {
   /**Stringified location details */
 
   details: string;
+
+  id: string;
 }

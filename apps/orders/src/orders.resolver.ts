@@ -67,10 +67,8 @@ export class OrdersResolver {
     return this.ordersService.getChats();
   }
 
-  @Mutation(() => Offer)
+  @Mutation(() => Offer, { description: 'OfferId is the token' })
   acceptAndCreateOfferToken(@Args('offerId') offerId: string): Promise<Offer> {
     return this.ordersService.acceptAndCreateOfferToken(offerId);
   }
-
-  
 }

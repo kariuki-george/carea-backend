@@ -111,4 +111,10 @@ export class UsersResolver {
   ): Promise<typeof UpdateRoleResponse> {
     return this.usersService.updateRole(userId, context.user);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Query(() => [Address])
+  getAddressByUserId(@Args('userId') userId: string) {
+    return this.usersService.getAddressesByUserId(userId);
+  }
 }
