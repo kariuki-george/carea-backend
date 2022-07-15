@@ -11,6 +11,14 @@ import { CreateOfferResponse } from './res/createOffer.res';
 import * as Chance from 'chance';
 import { CreateOrderInput } from './dto/createOrder.dto';
 import { Prisma } from '@prisma/orders/client';
+import { CreateOrderResponse } from './res/createOrder.res';
+import { Order } from './entities/Order.entity';
+
+interface validOffer {
+  valid?: boolean;
+  message?: string;
+  offer?: Offer;
+}
 
 @Injectable()
 export class OrdersService {
@@ -111,57 +119,85 @@ export class OrdersService {
       data: { status: OfferStatus.ACCEPTED },
     });
   }
-  private validateToken(token: string, userId: string): Promise<Offer> {
-    return this.prismaService.offer.findFirst({
-      where: { AND: { id: token, userId } },
+
+  private async validateToken(token: string): Promise<validOffer> {
+    const offer = await this.prismaService.offer.findUnique({
+      where: { id: token },
     });
+
+    if (offer) {
+      //check if offer is alrady used
+      if (offer.valid) {
+        return {
+          valid: true,
+          offer,
+        };
+      } else {
+        return {
+          valid: false,
+          message: 'Token already used!',
+        };
+      }
+    } else {
+      //if no offer, offer does exists.
+      return {
+        valid: false,
+        message: "Token doesn't exist",
+      };
+    }
   }
   private deleteToken(id: string) {
     return this.prismaService.offer.delete({ where: { id } });
   }
 
-  async createOrder(input: CreateOrderInput): Promise<{}> {
+  async createOrder(input: CreateOrderInput): Promise<CreateOrderResponse> {
     const { token, ...data } = input;
     const order = await this.prismaService.order.create({ data });
     //if token, validate it
-    let validOffer: Prisma.OfferMaxAggregateOutputType;
+    let valideOffer: validOffer;
     if (token) {
-      validOffer = await this.prismaService.offer.findUnique({
-        where: { id: input.token },
-      });
-    }
+      valideOffer = await this.validateToken(token);
 
-    if (validOffer && !validOffer.orderId) {
+      if (!valideOffer.valid) {
+        return {
+          order,
+          offer: {
+            error: true,
+            message: valideOffer.message,
+          },
+        };
+      }
+      //update order
       await this.prismaService.order.update({
         where: { id: order.id },
         data: {
           offer: {
             connect: {
-              offerId: validOffer.id,
+              id: token,
             },
           },
         },
       });
-    } else {
-      if (!validOffer) {
-        return {
-          error: true,
-          message: "Token doesn't exist",
-        };
-      }
-      if (validOffer.orderId) {
-        return {
-          error: true,
-          message: 'Token already used',
-        };
-      }
+      //update offer validity
+
+      return {
+        order,
+        offer: {
+          offer: valideOffer.offer,
+        },
+      };
     }
-    return order;
+
+    return {
+      order,
+    };
   }
 
-  getOrders() {
-    //TODO: perform a filter
+  getOrders():Promise<Order[]>{
+    
     return this.prismaService.order.findMany();
   }
- 
+  getOrdersByUserId(userId:string):Promise<Order[]>{
+    return this.prismaService.order.findMany({where:{userId}})
+  }
 }

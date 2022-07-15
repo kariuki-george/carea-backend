@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./@prisma/client"
+
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum OfferStatus {
+  ACCEPTED
+  DECLINED
+  PROCESSING
+}
+
+enum OrderStatus {
+  PROCESSING
+  DELIVERY
+  COMPLETED
+  CANCELLED
+  REFUND
+  UNPAID
+}
+
+model order {
+   id       String @id @default(auto()) @map("_id") @db.ObjectId
+   userId   String
+   addressId    String
+   status     OrderStatus @default(PROCESSING)
+   carId  String
+   offer offer? @relation(fields: [offerId],references: [id])
+   offerId String? @db.ObjectId @unique
+
+}
+
+model offer {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  status OfferStatus   @default(PROCESSING)
+  amount Int
+  userId String
+  carId String
+  valid Boolean @default(true)
+ 
+   order order?
+}
+
+model chat {
+    id   String @id @default(auto()) @map("_id") @db.ObjectId
+    userId String
+    carId   String
+    messages message[]
+}
+
+model message{
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  buyer Boolean @default(true)
+  message String
+  chat   chat   @relation(fields: [chatId], references: [id])
+  chatId String @db.ObjectId 
+  createdAt DateTime @default(now())
+}

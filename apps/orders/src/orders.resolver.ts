@@ -2,13 +2,16 @@ import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { AddMessageInput } from './dto/addMessage.dto';
 import { CreateChatInput } from './dto/createChat.dto';
 import { CreateOfferInput } from './dto/createOffer.dto';
+import { CreateOrderInput } from './dto/createOrder.dto';
 import { GetOfferInput } from './dto/getOffer.dto';
 import { UpdateOfferInput } from './dto/updateOffer.dto';
 import { Chat } from './entities/Chat.entity';
 import { Message } from './entities/messages.entity';
 import { Offer } from './entities/Offer.entity';
+import { Order } from './entities/Order.entity';
 import { OrdersService } from './orders.service';
 import { CreateOfferResponse } from './res/createOffer.res';
+import { CreateOrderResponse } from './res/createOrder.res';
 
 @Resolver()
 export class OrdersResolver {
@@ -70,5 +73,23 @@ export class OrdersResolver {
   @Mutation(() => Offer, { description: 'OfferId is the token' })
   acceptAndCreateOfferToken(@Args('offerId') offerId: string): Promise<Offer> {
     return this.ordersService.acceptAndCreateOfferToken(offerId);
+  }
+
+  @Mutation(() => CreateOrderResponse, {
+    description: 'Takes in an optional token argument',
+  })
+  createOrder(
+    @Args('createOrder') input: CreateOrderInput
+  ): Promise<CreateOrderResponse> {
+    return this.ordersService.createOrder(input);
+  }
+
+  @Query(() => [Order])
+  getOrders(): Promise<Order[]> {
+    return this.ordersService.getOrders();
+  }
+  @Query(() => [Order])
+  getOrdersByUserId(@Args('UserId') userId: string): Promise<Order[]> {
+    return this.ordersService.getOrdersByUserId(userId);
   }
 }

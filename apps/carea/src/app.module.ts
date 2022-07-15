@@ -9,7 +9,6 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloServerPluginInlineTrace } from 'apollo-server-core';
 import * as Joi from 'joi';
 import { AuthModule } from 'libs/auth/auth.module';
-import { DatabaseModule } from 'libs/database/database.module';
 import { RmqModule } from 'libs/rmq/rmq.module';
 import { CareaResolver } from './app.resolver';
 import { AppService } from './app.service';
@@ -39,7 +38,6 @@ import { PrismaService } from './prisma.service';
       }),
     }),
 
-    DatabaseModule,
 
     CacheModule.register(),
     AuthModule,

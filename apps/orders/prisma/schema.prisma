@@ -30,7 +30,8 @@ model order {
    addressId    String
    status     OrderStatus @default(PROCESSING)
    carId  String
-offer offer?
+   offer offer? @relation(fields: [offerId],references: [id])
+   offerId String? @db.ObjectId @unique
 
 }
 
@@ -41,8 +42,8 @@ model offer {
   userId String
   carId String
   valid Boolean @default(true)
-  order order? @relation(fields: [orderId],references: [id])
-   orderId   String? @db.ObjectId @unique
+ 
+   order order?
 }
 
 model chat {

@@ -16,7 +16,7 @@ export class Offer {
   carId?: string;
   userId?: string;
   amount?: number;
-  token?: string;
+ 
   @Field(() => OfferStatus)
   status?: string;
 }
