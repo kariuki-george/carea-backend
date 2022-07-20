@@ -1,12 +1,19 @@
-import { Controller, Get } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from './guards/jwt.guard';
+import { User } from './users/entities/user.entity';
+import { Whoami } from './whoami.decorator';
+import { MessagePattern } from '@nestjs/microservices';
 
 @Controller()
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
-
   @Get()
-  getHello(): string {
-    return this.authService.getHello();
+  getHello() {
+    return 'hi';
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @MessagePattern('validate_user')
+  async validateUser(@Whoami() user: User) {
+    return user;
   }
 }

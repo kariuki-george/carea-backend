@@ -1,0 +1,44 @@
+# services:
+#   auth:
+#     build:
+#       context: .
+#       dockerfile: ./apps/auth/Dockerfile
+#       target: development
+#     command: yarn start:dev auth
+#     env_file:
+#       - .env
+#     volumes:
+#       - .:/usr/src/app
+#       - /usr/src/app/node_modules
+#     ports:
+#       - '4010:4010'
+#     depends_on:
+#       - emails
+
+#   gateway:
+#     build:
+#       context: .
+#       dockerfile: ./apps/auth/Dockerfile
+#       target: development
+#     command: yarn start:dev gateway
+#     volumes:
+#       - .:/usr/src/app
+#       - /usr/src/app/node_modules
+#     ports:
+#       - '4000:4000'
+#     depends_on:
+#       - auth
+
+#   emails:
+#     build:
+#       context: .
+#       dockerfile: ./apps/emails/Dockerfile
+#       target: development
+#     command: yarn start:dev email
+#     env_file:
+#       - ./apps/emails/.env
+#     volumes:
+#       - .:/usr/src/app
+#       - /usr/src/app/node_modules
+#     ports:
+#       - '4020:4020'
