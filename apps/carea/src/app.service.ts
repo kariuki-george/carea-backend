@@ -11,9 +11,8 @@ import { CarResponse } from './res/createCar.res';
 import { CategoryResponse } from './res/createCategory.res';
 import { GetCarsResponse } from './res/getCars.res';
 import { PrismaService } from './prisma.service';
-import { Prisma } from '@prisma/client';
+
 import { Car } from './entities/car.entity';
-import { start } from 'repl';
 
 @Injectable()
 export class AppService {
@@ -155,7 +154,7 @@ export class AppService {
       update: data,
     });
   }
-  getCarById(carId:string):Promise<Car>{
-return this.prismaService.car.findUnique({where:{id:carId}})
+  getCarById(carId: string): Promise<Car> {
+    return this.prismaService.car.findUnique({ where: { id: carId } });
   }
 }
