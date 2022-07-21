@@ -1,36 +1,40 @@
-import { DynamicModule, Module } from '@nestjs/common';
+import { AmqpConnection, RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
+import { Logger, Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ClientsModule, Transport } from '@nestjs/microservices';
 import { RmqService } from './rqm.service';
 
-interface RmqModuleOptions {
-  name: string;
-}
-
 @Module({
-  providers: [RmqService],
-  exports: [RmqService],
-})
-export class RmqModule {
-  static register({ name }: RmqModuleOptions): DynamicModule {
-    return {
-      module: RmqModule,
-      imports: [
-        ClientsModule.registerAsync([
+  imports: [
+    RabbitMQModule.forRootAsync(RabbitMQModule, {
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        exchanges: [
           {
-            name,
-            useFactory: (configService: ConfigService) => ({
-              transport: Transport.RMQ,
-              options: {
-                urls: [configService.get<string>('RABBIT_MQ_URI')],
-                queue: configService.get<string>(`RABBIT_MQ_${name}_QUEUE`),
-              },
-            }),
-            inject: [ConfigService],
+            name: 'EMAIL',
+            type: 'direct',
           },
-        ]),
-      ],
-      exports: [ClientsModule],
-    };
+        ],
+        uri: config.get<string>('RABBIT_MQ_URI'),
+        connectionInitOptions: { wait: true, reject: true, timeout: 3000 },
+      }),
+    }),
+  ],
+  providers: [RmqService],
+  exports: [RmqModule, RabbitMQModule, RmqService],
+})
+export class RmqModule implements OnModuleInit {
+  constructor(private readonly amqpConnection: AmqpConnection) {}
+
+  async onModuleInit(): Promise<void> {
+    const connection = await this.amqpConnection.managedConnection;
+    connection.on('disconnect', (opts) => {
+      if (opts.err) {
+        Logger.error('Amqp error', opts.err.stack, 'AppModule.amqpConnection');
+        process.exit(1);
+      }
+
+      Logger.warn('Amqp disconnect', "AppModule.amqpConnection'");
+    });
   }
 }
