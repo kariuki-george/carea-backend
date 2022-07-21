@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  BUYER
+  SUBADMIN
+}
+
+model addresses {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  details String
+  name    String
+  user  users @relation(fields: [userId], references: [id])
+  userId String @db.ObjectId
+}
+
+
+
+
+
+model users {
+  id        String         @id @default(auto()) @map("_id") @db.ObjectId
+  address   addresses[]
+  email     String
+  firstName String?
+  lastName  String?
+  password  String 
+  role      Role @default(BUYER)
+  verified  Boolean?     @default(false)
+
+  @@unique([email])
+}
+
+
+
+//carea
+
+enum CarCondition {
+  NEW
+  USED
+}
+
+model category {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  imageUrl String
+  name     String 
+  cars    car[]
+
+  @@unique([name])
+}
+
+model review {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  rating Float?
+  name String?
+  review String?
+  userId  String
+  car   car @relation(fields: [carId], references: [id])
+  carId String @db.ObjectId
+}
+
+model car {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  checkout   Boolean @default(false)
+  condition  CarCondition @default(NEW)
+  desc       String
+  gallery    String[]
+  imageUrl   String
+  name       String   
+  price      Int
+  publish    Boolean @default(false)
+  stock      Int
+  category    category @relation(fields: [categoryId], references: [id])
+  categoryId   String  @db.ObjectId  
+  reviews      review[]
+  @@unique([name])
+}
+
+//orders
+
+enum OfferStatus {
+  ACCEPTED
+  DECLINED
+  PROCESSING
+}
+
+enum OrderStatus {
+  PROCESSING
+  DELIVERY
+  COMPLETED
+  CANCELLED
+  REFUND
+  UNPAID
+}
+
+model order {
+   id       String @id @default(auto()) @map("_id") @db.ObjectId
+   userId   String
+   addressId    String
+   status     OrderStatus @default(PROCESSING)
+   carId  String
+   offer offer? @relation(fields: [offerId],references: [id])
+   offerId String? @db.ObjectId @unique
+
+}
+
+model offer {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  status OfferStatus   @default(PROCESSING)
+  amount Int
+  userId String
+  carId String
+  valid Boolean @default(true)
+ 
+   order order?
+}
+
+model chat {
+    id   String @id @default(auto()) @map("_id") @db.ObjectId
+    userId String
+    carId   String
+    messages message[]
+}
+
+model message{
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  buyer Boolean @default(true)
+  message String
+  chat   chat   @relation(fields: [chatId], references: [id])
+  chatId String @db.ObjectId 
+  createdAt DateTime @default(now())
+}
