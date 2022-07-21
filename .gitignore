@@ -37,4 +37,4 @@ lerna-debug.log*
 # env var
 .env
 
-bugs
+bugs.txt
