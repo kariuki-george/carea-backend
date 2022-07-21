@@ -34,7 +34,6 @@ import { RmqModule } from 'libs/rmq/rmq.module';
     OrdersModule,
     PrismaModule.forRoot(),
     RmqModule,
-    
   ],
   providers: [],
 })
