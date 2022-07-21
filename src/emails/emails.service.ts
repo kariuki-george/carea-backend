@@ -23,12 +23,12 @@ export class EmailsService {
   @RabbitSubscribe({
     exchange: 'EMAIL',
     routingKey: 'user_verifyEmail',
-    queue: 'EMAIL',
+    queue: 'EMAIL-VERIFYUSER',
   })
   async sendUserConfirmation(user: Partial<User>) {
     const url = `http:localhost:3100/auth/confirm?token=${user.token}?email=${user.email}`;
     try {
-      await this.sendEmail({
+      return await this.sendEmail({
         to: user.email,
         subject: 'Welcome to Carea! Confirm your Email',
 
@@ -57,10 +57,15 @@ export class EmailsService {
     //this.rmqService.ack(context);
   }
 
+  @RabbitSubscribe({
+    exchange: 'EMAIL',
+    routingKey: 'user_passwordReset',
+    queue: 'EMAIL-PASSWORDRESET',
+  })
   async sendChangePassword(user: Partial<User>) {
     const url = `http:localhost:3100/auth/change-password?token=${user.token}?email=${user.email}`;
     try {
-      await this.sendEmail({
+      return await this.sendEmail({
         to: user.email,
 
         subject: 'Carea: Change Password Request!',
@@ -68,7 +73,7 @@ export class EmailsService {
           url,
           name: user.email,
         },
-        template: './changePassword',
+        template: '../src/emails/templates/changePassword',
       });
     } catch (error) {
       throw new Error(error);

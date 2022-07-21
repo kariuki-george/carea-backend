@@ -21,6 +21,7 @@ import { RmqModule } from 'libs/rmq/rmq.module';
       autoSchemaFile: true,
       context: ({ req, res }) => ({ req, res }),
       introspection: true,
+      cache: 'bounded',
     }),
     ConfigModule.forRoot({
       isGlobal: true,

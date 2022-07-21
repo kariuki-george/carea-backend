@@ -1,7 +1,6 @@
 import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
 import { join } from 'path';
-import { EmailsController } from './emails.controller';
 import { EmailsService } from './emails.service';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -15,13 +14,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           host: configService.get<string>('MAIL_HOST'),
           port: configService.get<number>('MAIL_PORT'),
           secure: false,
-          auth:{
-          
-              user: configService.get<string>('MAIL_USER'),
-              pass: configService.get<string>('MAIL_PASSWORD'),
-        
-          }
-          
+          auth: {
+            user: configService.get<string>('MAIL_USER'),
+            pass: configService.get<string>('MAIL_PASSWORD'),
+          },
         },
         defaults: {
           from: configService.get<string>('MAIL_FROM'),
@@ -36,9 +32,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
       inject: [ConfigService],
     }),
-  
   ],
-  controllers: [EmailsController],
   providers: [EmailsService],
 })
 export class EmailsModule {}
