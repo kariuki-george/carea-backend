@@ -27,12 +27,9 @@ export class RmqService {
     channel.ack(message);
   }
 
-  publish(
-    exchange: string,
-    routingKey: string,
-    message: any,
-    options?: {}
-  ) {
-    this.amqpConnection.publish(exchange, routingKey, message, options);
+  publish(exchange: string, routingKey: string, message: any, options?: any) {
+    this.amqpConnection.publish(exchange, routingKey, message, {
+      queue: exchange + '-' + routingKey.toUpperCase(),
+    });
   }
 }
