@@ -6,7 +6,7 @@ export class Message {
   /**
    * returns true if a message is sent by a buyer else false if by the admin.
    */
-  buyer: boolean;
+  userId: string;
   message: string;
 
   chatId: string;

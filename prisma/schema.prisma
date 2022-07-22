@@ -17,7 +17,7 @@ model addresses {
   id      String @id @default(auto()) @map("_id") @db.ObjectId
   details String
   name    String
-  user  users @relation(fields: [userId], references: [id])
+  user  user @relation(fields: [userId], references: [id])
   userId String @db.ObjectId
 }
 
@@ -25,7 +25,7 @@ model addresses {
 
 
 
-model users {
+model user {
   id        String         @id @default(auto()) @map("_id") @db.ObjectId
   address   addresses[]
   email     String
@@ -34,6 +34,7 @@ model users {
   password  String 
   role      Role @default(BUYER)
   verified  Boolean?     @default(false)
+  chats chat[]
 
   @@unique([email])
 }
@@ -80,6 +81,8 @@ model car {
   category    category @relation(fields: [categoryId], references: [id])
   categoryId   String  @db.ObjectId  
   reviews      review[]
+  chats chat[]
+  offer offer?
   @@unique([name])
 }
 
@@ -116,7 +119,8 @@ model offer {
   status OfferStatus   @default(PROCESSING)
   amount Int
   userId String
-  carId String
+  car car @relation(fields: [carId],references: [id])
+  carId String @db.ObjectId @unique
   valid Boolean @default(true)
  
    order order?
@@ -124,14 +128,16 @@ model offer {
 
 model chat {
     id   String @id @default(auto()) @map("_id") @db.ObjectId
-    userId String
-    carId   String
+    user user @relation(fields: [userId], references: [id])
+    userId String @db.ObjectId
+    car  car @relation(fields: [carId], references: [id])
+    carId   String @db.ObjectId
     messages message[]
 }
 
 model message{
   id    String @id @default(auto()) @map("_id") @db.ObjectId
-  buyer Boolean @default(true)
+  userId String @db.ObjectId 
   message String
   chat   chat   @relation(fields: [chatId], references: [id])
   chatId String @db.ObjectId 

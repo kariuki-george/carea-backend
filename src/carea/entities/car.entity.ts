@@ -59,3 +59,10 @@ export class Car {
 
   categoryId: string;
 }
+
+@ObjectType()
+export class CarProps {
+  name: string;
+  imageUrl: string;
+}
+

@@ -14,6 +14,7 @@ import { CreateOrderInput } from './dto/createOrder.dto';
 
 import { CreateOrderResponse } from './res/createOrder.res';
 import { Order } from './entities/Order.entity';
+import { GetOffers } from './res/Offer.res';
 
 interface validOffer {
   valid?: boolean;
@@ -65,9 +66,19 @@ export class OrdersService {
     });
   }
 
-  getOffers(input: Partial<Offer>): Promise<Offer[]> {
+  getOffers(input: Partial<Offer>): Promise<GetOffers[]> {
     const { status, ...data } = input;
-    return this.prismaService.offer.findMany({ where: data });
+    return this.prismaService.offer.findMany({
+      where: data,
+      include: {
+        car: {
+          select: {
+            name: true,
+            imageUrl: true,
+          },
+        },
+      },
+    });
   }
 
   async createChat({ userId, carId }: CreateChatInput): Promise<Chat> {
@@ -79,13 +90,25 @@ export class OrdersService {
           carId,
         },
       },
+      include: {
+        car: {
+          select: {
+            name: true,
+            imageUrl: true,
+          },
+        },
+      },
     });
 
     if (existing) {
       return existing;
     }
 
-    return this.prismaService.chat.create({ data: { userId, carId } });
+    const chat = await this.prismaService.chat.create({
+      data: { userId, carId },
+      include: { car: { select: { name: true, imageUrl: true } } },
+    });
+    return chat;
   }
 
   addMessage(input: AddMessageInput): Promise<Message> {
@@ -97,6 +120,25 @@ export class OrdersService {
   getChatsByUserId(userId: string): Promise<Chat[]> {
     return this.prismaService.chat.findMany({
       where: { userId },
+      include: {
+        messages: {
+          take: 1,
+          orderBy: {
+            createdAt: 'desc',
+          },
+
+          select: {
+            message: true,
+            createdAt: true,
+          },
+        },
+        car: {
+          select: {
+            name: true,
+            imageUrl: true,
+          },
+        },
+      },
     });
   }
 
@@ -107,11 +149,27 @@ export class OrdersService {
   getChatsCount(): Promise<number> {
     return this.prismaService.chat.count();
   }
+
+  getChatById(id: string): Promise<Chat> {
+    return this.prismaService.chat.findUnique({
+      where: { id },
+      include: {
+        car: {
+          select: {
+            name: true,
+            imageUrl: true,
+          },
+        },
+      },
+    });
+  }
+
   getMessagesCount(chatId: string): Promise<number> {
     return this.prismaService.message.count({ where: { chatId } });
   }
-  getChats(): Promise<Chat[]> {
-    return this.prismaService.chat.findMany();
+  async getChats(): Promise<Chat[]> {
+    return await [];
+    //return this.prismaService.chat.findMany();
   }
 
   acceptAndCreateOfferToken(id: string): Promise<Offer> {

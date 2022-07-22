@@ -14,7 +14,6 @@ import { GetCarsResponse } from './res/getCars.res';
 import { Car } from './entities/car.entity';
 import { PrismaService } from 'libs/database/prisma.service';
 
-
 @Injectable()
 export class CareaService {
   constructor(private readonly prismaService: PrismaService) {}
