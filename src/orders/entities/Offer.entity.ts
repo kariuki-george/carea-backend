@@ -10,6 +10,8 @@ registerEnumType(OfferStatus, {
   name: 'OfferStatus',
 });
 
+
+
 @ObjectType()
 export class Offer {
   id?: string;

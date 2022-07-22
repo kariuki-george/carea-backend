@@ -26,7 +26,7 @@ export class EmailsService {
     queue: 'EMAIL-VERIFYUSER',
   })
   async sendUserConfirmation(user: Partial<User>) {
-    const url = `http:localhost:3100/auth/confirm?token=${user.token}?email=${user.email}`;
+    const url = `http:localhost:3000/auth/verify?token=${user.token}&email=${user.email}`;
     try {
       return await this.sendEmail({
         to: user.email,
@@ -63,7 +63,7 @@ export class EmailsService {
     queue: 'EMAIL-PASSWORDRESET',
   })
   async sendChangePassword(user: Partial<User>) {
-    const url = `http:localhost:3100/auth/change-password?token=${user.token}?email=${user.email}`;
+    const url = `http:localhost:3000/auth/change-password?token=${user.token}&email=${user.email}`;
     try {
       return await this.sendEmail({
         to: user.email,

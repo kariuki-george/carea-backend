@@ -12,6 +12,7 @@ import { Order } from './entities/Order.entity';
 import { OrdersService } from './orders.service';
 import { CreateOfferResponse } from './res/createOffer.res';
 import { CreateOrderResponse } from './res/createOrder.res';
+import { GetOffers } from './res/Offer.res';
 
 @Resolver()
 export class OrdersResolver {
@@ -31,10 +32,10 @@ export class OrdersResolver {
     return this.ordersService.updateOffer(updateOffer);
   }
 
-  @Query(() => [Offer], {
+  @Query(() => [GetOffers], {
     description: 'If no inputs, returns all offers else by input',
   })
-  getOffers(@Args('getOffer') getOffers: GetOfferInput): Promise<Offer[]> {
+  getOffers(@Args('getOffer') getOffers: GetOfferInput): Promise<GetOffers[]> {
     return this.ordersService.getOffers(getOffers);
   }
 
@@ -55,6 +56,11 @@ export class OrdersResolver {
   @Query(() => [Message])
   getMessages(@Args('chatId') chatId: string): Promise<Message[]> {
     return this.ordersService.getMessages(chatId);
+  }
+
+  @Query(() => Chat)
+  getChatById(@Args('chatId') chatId: string): Promise<Chat> {
+    return this.ordersService.getChatById(chatId);
   }
 
   @Query(() => Int)

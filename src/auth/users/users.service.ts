@@ -34,7 +34,7 @@ export class UsersService {
   async validateUser(email: string, password: string) {
     let user: User;
 
-    user = await this.prismaService.users.findUnique({ where: { email } });
+    user = await this.prismaService.user.findUnique({ where: { email } });
 
     if (!user) {
       throw new UserInputError('User not found');
@@ -52,7 +52,7 @@ export class UsersService {
   }
   getUser(getUserArgs: Partial<User>) {
     const { email, id } = getUserArgs;
-    return this.prismaService.users.findUnique({
+    return this.prismaService.user.findUnique({
       where: {
         email,
         id,
@@ -61,14 +61,14 @@ export class UsersService {
   }
 
   findAll(): Promise<User[]> {
-    return this.prismaService.users.findMany();
+    return this.prismaService.user.findMany();
   }
 
   async createUser(input: CreateUserInput): Promise<typeof CreateUserResponse> {
     /**validate email  */
     let user: User;
     try {
-      user = await this.prismaService.users.create({
+      user = await this.prismaService.user.create({
         data: {
           email: input.email,
           password: await argon2.hash(input.password),
@@ -122,7 +122,7 @@ export class UsersService {
     }
 
     await this.cacheService.del(token);
-    await this.prismaService.users.update({
+    await this.prismaService.user.update({
       where: { email },
       data: { verified: true },
     });
@@ -198,7 +198,7 @@ export class UsersService {
      * update user password
      */
 
-    await this.prismaService.users.update({
+    await this.prismaService.user.update({
       where: { email },
       data: {
         password: await argon2.hash(password),
@@ -222,7 +222,7 @@ export class UsersService {
 
   updateProfile(profile: UpdateUserInput): Promise<User> {
     const { userId, ...data } = profile;
-    return this.prismaService.users.update({
+    return this.prismaService.user.update({
       where: { id: profile.userId },
       data,
     });
@@ -243,7 +243,7 @@ export class UsersService {
       };
     }
 
-    await this.prismaService.users.update({
+    await this.prismaService.user.update({
       where: { id: userId },
       data: {
         role: UserRoles.SUBADMIN,

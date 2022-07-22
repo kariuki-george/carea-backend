@@ -9,7 +9,7 @@ export class GetCarsInput {
    * This is the objectId first document in a page. If its the first page, the startIndex is null else the nextIndex provided be the last page.
    */
   @Field(() => String, { nullable: true })
-  startIndex: string | null;
+  startIndex: string | undefined;
   /**
    * Limit of how many documents are needed per page
    */
