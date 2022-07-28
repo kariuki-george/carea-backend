@@ -107,7 +107,9 @@ export class CareaService {
               contains: name || '',
             },
             category: {
-              name: categoryName,
+              name: {
+                contains: categoryName || '',
+              },
             },
           },
         },
@@ -121,7 +123,9 @@ export class CareaService {
               contains: name || '',
             },
             category: {
-              name: categoryName,
+              name: {
+                contains: categoryName || '',
+              },
             },
           },
         },

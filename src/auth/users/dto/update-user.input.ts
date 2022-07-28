@@ -14,4 +14,6 @@ export class UpdateUserInput {
    * lastname
    */
   lastName?: string;
+  name: string;
+  address: string;
 }

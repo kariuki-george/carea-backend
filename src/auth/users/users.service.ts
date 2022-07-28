@@ -21,6 +21,7 @@ import { Address } from './entities/address.entity';
 import { PrismaService } from 'libs/database/prisma.service';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { RmqService } from 'libs/rmq/rqm.service';
+import { SearchUserInput } from './dto/searchUser.dto';
 
 @Injectable()
 export class UsersService {
@@ -221,7 +222,8 @@ export class UsersService {
   }
 
   updateProfile(profile: UpdateUserInput): Promise<User> {
-    const { userId, ...data } = profile;
+    const { userId, name, address, ...data } = profile;
+    this.createAddress({ name, userId, details: address });
     return this.prismaService.user.update({
       where: { id: profile.userId },
       data,
@@ -236,12 +238,12 @@ export class UsersService {
      * Needs auth from admin. Check if user is admin.
      */
 
-    if (admin.role !== UserRoles.ADMIN) {
-      return {
-        error: true,
-        message: "Only super Admin can update a user's roles",
-      };
-    }
+    // if (admin.role !== UserRoles.ADMIN) {
+    //   return {
+    //     error: true,
+    //     message: "Only super Admin can update a user's roles",
+    //   };
+    // }
 
     await this.prismaService.user.update({
       where: { id: userId },
@@ -256,5 +258,18 @@ export class UsersService {
 
   getAddressesByUserId(userId: string): Promise<Address[]> {
     return this.prismaService.addresses.findMany();
+  }
+
+  getUserByIdOrEmail(input: SearchUserInput): Promise<User> {
+    return this.prismaService.user.findFirst({
+      where: {
+        OR: {
+          email: {
+            contains: input.email,
+          },
+          id: input.id,
+        },
+      },
+    });
   }
 }

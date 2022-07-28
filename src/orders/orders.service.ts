@@ -168,8 +168,27 @@ export class OrdersService {
     return this.prismaService.message.count({ where: { chatId } });
   }
   async getChats(): Promise<Chat[]> {
-    return await [];
-    //return this.prismaService.chat.findMany();
+    return this.prismaService.chat.findMany({
+      include: {
+        car: {
+          select: {
+            name: true,
+            imageUrl: true,
+          },
+        },
+        messages: {
+          take: 1,
+          orderBy: {
+            createdAt: 'desc',
+          },
+
+          select: {
+            message: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
   }
 
   acceptAndCreateOfferToken(id: string): Promise<Offer> {
@@ -258,4 +277,6 @@ export class OrdersService {
   getOrdersByUserId(userId: string): Promise<Order[]> {
     return this.prismaService.order.findMany({ where: { userId } });
   }
+
+  
 }

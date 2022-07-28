@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { Request } from 'express';
 
 import { LoginResponse } from './res/login.res';
 import { User, UserRoles } from './users/entities/user.entity';
+import { UsersService } from './users/users.service';
 
 export interface TokenPayload {
   userId: string;
@@ -14,7 +16,8 @@ export interface TokenPayload {
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly usersService:UsersService
   ) {}
   async login(context: any): Promise<typeof LoginResponse> {
     try {
@@ -55,5 +58,9 @@ export class AuthService {
         message: error.message || error.response.message,
       };
     }
+  }
+
+  async refreshToken(req:Request){
+    
   }
 }
