@@ -11,6 +11,7 @@ import { CreateAddressDto } from './dto/create-address.input';
 import { VerifyEmailDto } from './dto/verify-email.input';
 import { UpdateRoleResponse } from './res/updateRole.res';
 import { Address } from './entities/address.entity';
+import { SearchUserInput } from './dto/searchUser.dto';
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -106,5 +107,10 @@ export class UsersResolver {
   @Query(() => [Address])
   getAddressByUserId(@Args('userId') userId: string) {
     return this.usersService.getAddressesByUserId(userId);
+  }
+
+  @Query(() => User)
+  getUserByEmailOrId(@Args('input') input: SearchUserInput): Promise<User> {
+    return this.usersService.getUserByIdOrEmail(input);
   }
 }

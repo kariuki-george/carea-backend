@@ -8,4 +8,5 @@ export class CreateOfferInput {
   @IsPositive()
   @Field(() => Int)
   amount: number;
+  id?:string
 }

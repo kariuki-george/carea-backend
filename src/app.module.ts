@@ -9,6 +9,7 @@ import { EmailsModule } from './emails/emails.module';
 import { OrdersModule } from './orders/orders.module';
 import { PrismaModule } from 'libs/database/prisma.module';
 import { RmqModule } from 'libs/rmq/rmq.module';
+import { StatisticsModule } from './statistics/statistics.module';
 
 @Global()
 @Module({
@@ -35,6 +36,7 @@ import { RmqModule } from 'libs/rmq/rmq.module';
     OrdersModule,
     PrismaModule.forRoot(),
     RmqModule,
+    StatisticsModule,
   ],
   providers: [],
 })
