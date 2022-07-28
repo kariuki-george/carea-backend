@@ -15,6 +15,7 @@ import { CreateOrderInput } from './dto/createOrder.dto';
 import { CreateOrderResponse } from './res/createOrder.res';
 import { Order } from './entities/Order.entity';
 import { GetOffers } from './res/Offer.res';
+import { ObjectId } from 'bson';
 
 interface validOffer {
   valid?: boolean;
@@ -33,18 +34,49 @@ export class OrdersService {
     input: CreateOfferInput
   ): Promise<typeof CreateOfferResponse> {
     const { id, ...data } = input;
+    try {
+      const offer = await this.prismaService.offer.upsert({
+        where: {
+          id: id || new ObjectId().toHexString(),
+        },
+        update: { status: OfferStatus.PROCESSING, amount: input.amount },
+        create: {
+          carId: data.carId,
+          userId: data.userId,
+          amount: data.amount,
+        },
+      });
 
-    const offer = await this.prismaService.offer.upsert({
-      where: {
-        id,
-      },
-      update: { status: OfferStatus.PROCESSING, amount: input.amount },
-      create: data,
-    });
+      return {
+        offer,
+      };
+    } catch (error) {
+      //Will require a double call as prisma does not perform findAndUpdate...
+      if (error.code === 'P2002') {
+        const offer = await this.prismaService.offer.findFirst({
+          where: {
+            AND: {
+              carId: input.carId,
+              userId: input.userId,
+            },
+          },
+          select: {
+            id: true,
+          },
+        });
 
-    return {
-      offer,
-    };
+        return {
+          offer: await this.prismaService.offer.update({
+            where: { id: offer.id },
+            data: { amount: input.amount },
+          }),
+        };
+      }
+      return {
+        error: true,
+        message: 'An error occurred!',
+      };
+    }
   }
 
   updateOffer(input: UpdateOfferInput): Promise<Offer> {

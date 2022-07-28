@@ -41,6 +41,7 @@
     "amqplib": "^0.10.0",
     "apollo-server-express": "^3.10.0",
     "argon2": "^0.28.7",
+    "bson": "^4.6.5",
     "cache-manager": "^4.1.0",
     "chance": "^1.1.8",
     "class-transformer": "^0.5.1",
