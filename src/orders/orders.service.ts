@@ -32,23 +32,14 @@ export class OrdersService {
   async createOffer(
     input: CreateOfferInput
   ): Promise<typeof CreateOfferResponse> {
-    const exists = await this.prismaService.offer.findFirst({
-      where: {
-        AND: {
-          carId: input.carId,
-          userId: input.userId,
-        },
-      },
-    });
-    if (exists) {
-      return {
-        error: true,
-        message: 'Offer already exists, Update it instead!',
-      };
-    }
+    const { id, ...data } = input;
 
-    const offer = await this.prismaService.offer.create({
-      data: input,
+    const offer = await this.prismaService.offer.upsert({
+      where: {
+        id,
+      },
+      update: { status: OfferStatus.PROCESSING, amount: input.amount },
+      create: data,
     });
 
     return {
@@ -277,6 +268,4 @@ export class OrdersService {
   getOrdersByUserId(userId: string): Promise<Order[]> {
     return this.prismaService.order.findMany({ where: { userId } });
   }
-
-  
 }
