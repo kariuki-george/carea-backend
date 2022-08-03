@@ -35,6 +35,8 @@ model user {
   role      Role @default(BUYER)
   verified  Boolean?     @default(false)
   chats chat[]
+  accessTokenVersion Int? @default(0)
+  refreshTokenVersion Int? @default(0)
 
   @@unique([email])
 }

@@ -1,4 +1,6 @@
+import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 import { AddMessageInput } from './dto/addMessage.dto';
 import { CreateChatInput } from './dto/createChat.dto';
 import { CreateOfferInput } from './dto/createOffer.dto';
@@ -32,10 +34,12 @@ export class OrdersResolver {
     return this.ordersService.updateOffer(updateOffer);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Query(() => [GetOffers], {
     description: 'If no inputs, returns all offers else by input',
   })
   getOffers(@Args('getOffer') getOffers: GetOfferInput): Promise<GetOffers[]> {
+    console.log('hi');
     return this.ordersService.getOffers(getOffers);
   }
 
