@@ -18,15 +18,12 @@ import { StatisticsModule } from './statistics/statistics.module';
       driver: ApolloDriver,
       cors: {
         credentials: true,
-        origin: ['http://localhost:3000', 'http://localhost:3100', "/\.vercel\.app$/"],
-
-        
+        //origin: ['http://localhost:3000', 'http://localhost:3100', "/\.vercel\.app$/"],
       },
       autoSchemaFile: true,
       context: ({ req, res }) => ({ req, res }),
       introspection: true,
       cache: 'bounded',
-      
     }),
     ConfigModule.forRoot({
       isGlobal: true,
