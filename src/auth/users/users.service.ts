@@ -32,10 +32,22 @@ export class UsersService {
     @Inject(CACHE_MANAGER) private cacheService: Cache
   ) {}
 
+  /**
+   * Finds user, updates tokens
+   * @param email
+   * @param password
+   * @returns user
+   */
   async validateUser(email: string, password: string) {
     let user: User;
 
-    user = await this.prismaService.user.findUnique({ where: { email } });
+    user = await this.prismaService.user.update({
+      where: { email },
+      data: {
+        accessTokenVersion: { increment: 1 },
+        refreshTokenVersion: { increment: 1 },
+      },
+    });
 
     if (!user) {
       throw new UserInputError('User not found');

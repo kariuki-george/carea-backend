@@ -26,6 +26,10 @@ export class User {
   lastName?: string;
   @HideField()
   password?: string;
+  @HideField()
+  accessTokenVersion?: number;
+  @HideField()
+  refreshTokenVersion?: number;
 
   /**
    * Check if a user's email is verified
