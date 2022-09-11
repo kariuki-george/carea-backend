@@ -112,6 +112,9 @@
     "moduleNameMapper": {
       "@carea/common(|/.*)$": "<rootDir>/libs/common/src/$1",
       "@prisma/prisma(|/.*)$": "<rootDir>/libs/prisma/src/$1"
-    }
+    },
+    "roots": [
+      "<rootDir>/apps/"
+    ]
   }
 }
