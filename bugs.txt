@@ -1,2 +1,0 @@
-fix cookie
-fix cors
