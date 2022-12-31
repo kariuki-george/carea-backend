@@ -39,7 +39,7 @@ export class OrdersResolver {
     description: 'If no inputs, returns all offers else by input',
   })
   getOffers(@Args('getOffer') getOffers: GetOfferInput): Promise<GetOffers[]> {
-    console.log('hi');
+  
     return this.ordersService.getOffers(getOffers);
   }
 
