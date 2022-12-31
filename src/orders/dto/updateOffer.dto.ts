@@ -1,5 +1,5 @@
 import { Field, InputType, Int, registerEnumType } from '@nestjs/graphql';
-import { IsPositive } from 'class-validator';
+import { IsInt, IsPositive } from 'class-validator';
 import { OfferStatus } from '../entities/Offer.entity';
 
 registerEnumType(OfferStatus, {
@@ -13,5 +13,6 @@ export class UpdateOfferInput {
   amount?: number;
   @Field(() => OfferStatus)
   status?: OfferStatus;
-  id: string;
+  @IsInt()
+  id: number;
 }

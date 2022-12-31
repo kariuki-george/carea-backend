@@ -9,7 +9,7 @@ import { User, UserRoles } from './users/entities/user.entity';
 import { UsersService } from './users/users.service';
 
 export interface TokenPayload {
-  userId: string;
+  userId: number;
   expires?: string;
   version: number;
 }
@@ -77,7 +77,7 @@ export class AuthService {
      * { userId: '62cfec0dbde7644a863df103',version... expires: '30d', iat: 1657869819 }
      */
     let payload: {
-      userId: string;
+      userId: number;
       version: number;
       expires: string;
       iat: number;
@@ -146,10 +146,10 @@ export class AuthService {
     return res.json(accessToken);
   }
 
-  async logout(res: Response, userId: string) {
+  async logout(res: Response, userId: number) {
     //clear refreshToken version
     try {
-      if (userId && userId !== '') {
+      if (userId) {
         await this.prismaService.user.update({
           where: { id: userId },
           data: {

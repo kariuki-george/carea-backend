@@ -10,6 +10,7 @@ import { OrdersModule } from './orders/orders.module';
 import { PrismaModule } from 'libs/database/prisma.module';
 import { RmqModule } from 'libs/rmq/rmq.module';
 import { StatisticsModule } from './statistics/statistics.module';
+import { ApolloServerPluginLandingPageLocalDefault } from '.pnpm/apollo-server-core@3.11.1_graphql@16.6.0/node_modules/apollo-server-core';
 
 @Global()
 @Module({
@@ -18,15 +19,20 @@ import { StatisticsModule } from './statistics/statistics.module';
       driver: ApolloDriver,
       cors: {
         credentials: true,
-        origin: ['http://localhost:3000', 'http://localhost:3100', "/\.vercel\.app$/"],
-
-        
+        origin: [
+          'http://localhost:3000',
+          'http://localhost:3100',
+          '/.vercel.app$/',
+          'https://ssl.kariukigeorge.me/graphql',
+          'https://studio.apollographql.com',
+        ],
       },
       autoSchemaFile: true,
       context: ({ req, res }) => ({ req, res }),
       introspection: true,
       cache: 'bounded',
-      
+      plugins: [ApolloServerPluginLandingPageLocalDefault],
+      playground: false,
     }),
     ConfigModule.forRoot({
       isGlobal: true,

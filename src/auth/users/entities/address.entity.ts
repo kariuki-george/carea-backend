@@ -9,5 +9,5 @@ export class Address {
 
   details: string;
 
-  id: string;
+  id: number;
 }

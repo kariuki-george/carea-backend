@@ -15,7 +15,6 @@ import { CreateOrderInput } from './dto/createOrder.dto';
 import { CreateOrderResponse } from './res/createOrder.res';
 import { Order } from './entities/Order.entity';
 import { GetOffers } from './res/Offer.res';
-import { ObjectId } from 'bson';
 
 interface validOffer {
   valid?: boolean;
@@ -37,7 +36,7 @@ export class OrdersService {
     try {
       const offer = await this.prismaService.offer.upsert({
         where: {
-          id: id || new ObjectId().toHexString(),
+          id: id,
         },
         update: { status: OfferStatus.PROCESSING, amount: input.amount },
         create: {
@@ -140,7 +139,7 @@ export class OrdersService {
     });
   }
 
-  getChatsByUserId(userId: string): Promise<Chat[]> {
+  getChatsByUserId(userId: number): Promise<Chat[]> {
     return this.prismaService.chat.findMany({
       where: { userId },
       include: {
@@ -165,7 +164,7 @@ export class OrdersService {
     });
   }
 
-  getMessages(chatId: string): Promise<Message[]> {
+  getMessages(chatId: number): Promise<Message[]> {
     return this.prismaService.message.findMany({ where: { chatId } });
   }
 
@@ -173,7 +172,7 @@ export class OrdersService {
     return this.prismaService.chat.count();
   }
 
-  getChatById(id: string): Promise<Chat> {
+  getChatById(id: number): Promise<Chat> {
     return this.prismaService.chat.findUnique({
       where: { id },
       include: {
@@ -187,7 +186,7 @@ export class OrdersService {
     });
   }
 
-  getMessagesCount(chatId: string): Promise<number> {
+  getMessagesCount(chatId: number): Promise<number> {
     return this.prismaService.message.count({ where: { chatId } });
   }
   async getChats(): Promise<Chat[]> {
@@ -214,16 +213,17 @@ export class OrdersService {
     });
   }
 
-  acceptAndCreateOfferToken(id: string): Promise<Offer> {
+  acceptAndCreateOfferToken(id: number): Promise<Offer> {
     return this.prismaService.offer.update({
       where: { id },
       data: { status: OfferStatus.ACCEPTED },
     });
   }
 
+  // TODO: UPDATE THE ARGS
   private async validateToken(token: string): Promise<validOffer> {
     const offer = await this.prismaService.offer.findUnique({
-      where: { id: token },
+      where: {},
     });
 
     if (offer) {
@@ -247,7 +247,7 @@ export class OrdersService {
       };
     }
   }
-  private deleteToken(id: string) {
+  private deleteToken(id: number) {
     return this.prismaService.offer.delete({ where: { id } });
   }
 
@@ -269,16 +269,16 @@ export class OrdersService {
         };
       }
       //update order
-      await this.prismaService.order.update({
-        where: { id: order.id },
-        data: {
-          offer: {
-            connect: {
-              id: token,
-            },
-          },
-        },
-      });
+      // await this.prismaService.order.update({
+      //   where: { id: order.id },
+      //   data: {
+      //     offer: {
+      //       connect: {
+      //         id: token,
+      //       },
+      //     },
+      //   },
+      // });
       //update offer validity
 
       return {
@@ -297,7 +297,7 @@ export class OrdersService {
   getOrders(): Promise<Order[]> {
     return this.prismaService.order.findMany();
   }
-  getOrdersByUserId(userId: string): Promise<Order[]> {
+  getOrdersByUserId(userId: number): Promise<Order[]> {
     return this.prismaService.order.findMany({ where: { userId } });
   }
 }

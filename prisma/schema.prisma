@@ -59,7 +59,7 @@ model review {
   rating Float?
   name String?   
   review String? 
-  userId  String  
+  userId  Int  
   car   car @relation(fields: [carId], references: [id])
   carId Int
 }
@@ -102,10 +102,10 @@ enum OrderStatus {
 
 model order {
    id      Int      @id @default(autoincrement())
-   userId   String
-   addressId    String
+   userId   Int
+   addressId    Int
    status     OrderStatus @default(PROCESSING)
-   carId  String
+   carId  Int
    offer offer? @relation(fields: [offerId],references: [id])
    offerId  Int @unique
 
@@ -115,7 +115,7 @@ model offer {
   id  Int      @id @default(autoincrement())
   status OfferStatus   @default(PROCESSING)
   amount Int
-  userId String
+  userId Int
   car car @relation(fields: [carId],references: [id])
   carId Int @unique
   valid Boolean @default(true)

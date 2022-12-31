@@ -1,8 +1,8 @@
 import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 export enum CarCondition {
-  NEW="NEW",
-  USED="USED",
+  NEW = 'NEW',
+  USED = 'USED',
 }
 
 registerEnumType(CarCondition, {
@@ -15,7 +15,7 @@ export class Car {
    * Car's unique id
    */
 
-  id: string;
+  id: number;
   /**
    * Car's name, Should be unique
    */
@@ -57,7 +57,7 @@ export class Car {
   @Field(() => [String], { description: 'Other image urls' })
   gallery?: string[];
 
-  categoryId: string;
+  categoryId: number;
 }
 
 @ObjectType()
@@ -65,4 +65,3 @@ export class CarProps {
   name: string;
   imageUrl: string;
 }
-

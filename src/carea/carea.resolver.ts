@@ -61,7 +61,7 @@ export class CareaResolver {
   }
 
   @Query(() => Car)
-  getCarById(@Args('carId') carId: string): Promise<Car> {
+  getCarById(@Args('carId') carId: number): Promise<Car> {
     return this.careaService.getCarById(carId);
   }
 }

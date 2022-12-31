@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { CreateCarInput } from './dto/createCar.dto';
 import { CreateCategoryInput } from './dto/createCategory.dto';
@@ -86,7 +86,7 @@ export class CareaService {
 
   async getCars(input: GetCarsInput): Promise<GetCarsResponse> {
     let results: Car[];
-    let nextPage: string | false;
+    let nextPage: number | false;
     const {
       startIndex,
       limit,
@@ -158,7 +158,13 @@ export class CareaService {
       update: data,
     });
   }
-  getCarById(carId: string): Promise<Car> {
-    return this.prismaService.car.findUnique({ where: { id: carId } });
+  async getCarById(carId: number): Promise<Car> {
+    const car = await this.prismaService.car.findUnique({
+      where: { id: carId },
+    });
+
+    if (car) return car;
+
+    throw new NotFoundException('Car not found');
   }
 }

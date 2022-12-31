@@ -4,7 +4,7 @@ import { Car } from '../entities/car.entity';
 @ObjectType()
 export class GetCarsResponse {
   @Field(() => String || Boolean)
-  nextPage: string | boolean;
+  nextPage: number | boolean;
   @Field(() => [Car])
   cars: Car[];
 }

@@ -98,7 +98,7 @@ export class UsersResolver {
 
   @Mutation(() => UpdateRoleResponse)
   updateRole(
-    @Args('userId') userId: string,
+    @Args('userId') userId: number,
     @Context() context: any
   ): Promise<typeof UpdateRoleResponse> {
     return this.usersService.updateRole(userId, context.user);

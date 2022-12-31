@@ -4,7 +4,6 @@ import * as argon2 from 'argon2';
 import { AuthenticationError, UserInputError } from 'apollo-server-express';
 import { User, UserRoles } from './entities/user.entity';
 import { CreateUserResponse } from './res/createUser.res';
-import { lastValueFrom } from 'rxjs';
 
 import * as Chance from 'chance';
 import { Cache } from 'cache-manager';
@@ -19,7 +18,6 @@ import { UpdateRoleResponse } from './res/updateRole.res';
 
 import { Address } from './entities/address.entity';
 import { PrismaService } from 'libs/database/prisma.service';
-import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { RmqService } from 'libs/rmq/rqm.service';
 import { SearchUserInput } from './dto/searchUser.dto';
 
@@ -166,9 +164,8 @@ export class UsersService {
       {
         ...data,
       },
-      {
-        ttl: 60 * 60,
-      }
+
+      60 * 60
     );
     return token;
   }
@@ -243,7 +240,7 @@ export class UsersService {
   }
 
   async updateRole(
-    userId: string,
+    userId: number,
     admin: User
   ): Promise<typeof UpdateRoleResponse> {
     /**

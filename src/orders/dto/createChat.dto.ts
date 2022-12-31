@@ -1,7 +1,10 @@
-import { InputType } from "@nestjs/graphql";
+import { InputType } from '@nestjs/graphql';
+import { IsInt } from 'class-validator';
 
 @InputType()
-export class CreateChatInput{
-userId:string;
-carId:string
+export class CreateChatInput {
+  @IsInt()
+  userId: number;
+  @IsInt()
+  carId: number;
 }

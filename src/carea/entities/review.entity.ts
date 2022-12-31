@@ -1,35 +1,33 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
-
-import { Car } from './car.entity';
+import { ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
-export class Review  {
+export class Review {
   /**
    * Car review unique id
    */
 
-  id: string;
+  id: number;
   /**
    * Reference to the car
    */
-  carId:string;
+  carId: number;
   /**
    * Number of ratings
    */
- 
+
   rating?: number;
   /**
    * UserId of reviewer
    */
 
-  userId: string;
+  userId: number;
   /**
    * names of reviewer
    */
- name?: string;
+  name?: string;
   /**
    * review desc
    */
-  
+
   review?: string;
 }

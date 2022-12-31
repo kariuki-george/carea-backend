@@ -3,9 +3,9 @@ import { CarProps } from 'src/carea/entities/car.entity';
 
 @ObjectType()
 export class Chat {
-  id: string;
-  userId: string;
-  carId: string;
+  id: number;
+  userId: number;
+  carId: number;
   messages?: MessageProps[];
   car: CarProps;
 }

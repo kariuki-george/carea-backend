@@ -1,12 +1,16 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
-import { IsPositive } from 'class-validator';
+import { IsInt, IsPositive } from 'class-validator';
 
 @InputType()
 export class CreateOfferInput {
-  userId: string;
-  carId: string;
+  @IsInt()
+  userId: number;
+  @IsInt()
+  carId: number;
   @IsPositive()
   @Field(() => Int)
+  @IsInt()
   amount: number;
-  id?:string
+  @IsInt()
+  id?: number;
 }

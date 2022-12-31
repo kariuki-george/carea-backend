@@ -2,14 +2,14 @@ import { ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
 export class Message {
-  id: string;
+  id: number;
   /**
    * returns true if a message is sent by a buyer else false if by the admin.
    */
-  userId: string;
+  userId: number;
   message: string;
 
-  chatId: string;
+  chatId: number;
 
   createdAt: Date;
 }

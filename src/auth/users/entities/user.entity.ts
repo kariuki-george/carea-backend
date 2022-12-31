@@ -17,7 +17,7 @@ registerEnumType(UserRoles, {
 
 @ObjectType()
 export class User {
-  id: string;
+  id: number;
 
   email: string;
 

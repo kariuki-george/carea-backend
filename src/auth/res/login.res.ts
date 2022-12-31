@@ -5,8 +5,6 @@ import { User } from '../users/entities/user.entity';
 @ObjectType()
 class Login {
   user: User;
-  
-
   accessToken: string;
 }
 

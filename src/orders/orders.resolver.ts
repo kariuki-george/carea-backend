@@ -39,7 +39,6 @@ export class OrdersResolver {
     description: 'If no inputs, returns all offers else by input',
   })
   getOffers(@Args('getOffer') getOffers: GetOfferInput): Promise<GetOffers[]> {
-  
     return this.ordersService.getOffers(getOffers);
   }
 
@@ -53,22 +52,22 @@ export class OrdersResolver {
   }
 
   @Query(() => [Chat])
-  getChatsByUserId(@Args('userId') userId: string): Promise<Chat[]> {
+  getChatsByUserId(@Args('userId') userId: number): Promise<Chat[]> {
     return this.ordersService.getChatsByUserId(userId);
   }
 
   @Query(() => [Message])
-  getMessages(@Args('chatId') chatId: string): Promise<Message[]> {
+  getMessages(@Args('chatId') chatId: number): Promise<Message[]> {
     return this.ordersService.getMessages(chatId);
   }
 
   @Query(() => Chat)
-  getChatById(@Args('chatId') chatId: string): Promise<Chat> {
+  getChatById(@Args('chatId') chatId: number): Promise<Chat> {
     return this.ordersService.getChatById(chatId);
   }
 
   @Query(() => Int)
-  getMessagesCount(@Args('chatId') chatId: string): Promise<number> {
+  getMessagesCount(@Args('chatId') chatId: number): Promise<number> {
     return this.ordersService.getMessagesCount(chatId);
   }
   @Query(() => Int)
@@ -81,7 +80,7 @@ export class OrdersResolver {
   }
 
   @Mutation(() => Offer, { description: 'OfferId is the token' })
-  acceptAndCreateOfferToken(@Args('offerId') offerId: string): Promise<Offer> {
+  acceptAndCreateOfferToken(@Args('offerId') offerId: number): Promise<Offer> {
     return this.ordersService.acceptAndCreateOfferToken(offerId);
   }
 
@@ -99,7 +98,7 @@ export class OrdersResolver {
     return this.ordersService.getOrders();
   }
   @Query(() => [Order])
-  getOrdersByUserId(@Args('UserId') userId: string): Promise<Order[]> {
+  getOrdersByUserId(@Args('UserId') userId: number): Promise<Order[]> {
     return this.ordersService.getOrdersByUserId(userId);
   }
 }
