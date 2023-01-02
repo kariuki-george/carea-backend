@@ -78,6 +78,7 @@ export class UsersService {
   async createUser(input: CreateUserInput): Promise<typeof CreateUserResponse> {
     /**validate email  */
     let user: User;
+
     try {
       user = await this.prismaService.user.create({
         data: {
