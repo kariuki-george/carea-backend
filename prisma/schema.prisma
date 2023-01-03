@@ -81,13 +81,20 @@ model reviews {
   carId Int
 }
 
+model carGallery{
+id Int @id @default(autoincrement())
+imageUrl String 
+car cars @relation(fields: [carId],references: [id])
+carId Int
+}
+
 model cars {
   id        Int   @id @default(autoincrement())
   checkout   Boolean @default(false)
   condition  CarCondition @default(NEW)
   desc       String 
-  gallery    String[]
-  imageUrl   String   
+  gallery    carGallery[]
+ 
   name       String   
   price      Int
   publish    Boolean @default(false)
@@ -95,6 +102,7 @@ model cars {
   category    categories @relation(fields: [categoryId], references: [id])
   categoryId   Int  
   reviews      reviews[]
+  
   chats chats[]
   offer offers?
   @@unique([name])

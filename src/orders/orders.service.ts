@@ -96,7 +96,6 @@ export class OrdersService {
         car: {
           select: {
             name: true,
-            imageUrl: true,
           },
         },
       },
@@ -116,7 +115,6 @@ export class OrdersService {
         car: {
           select: {
             name: true,
-            imageUrl: true,
           },
         },
       },
@@ -128,7 +126,7 @@ export class OrdersService {
 
     const chat = await this.prismaService.chats.create({
       data: { userId, carId },
-      include: { car: { select: { name: true, imageUrl: true } } },
+      include: { car: { select: { name: true } } },
     });
     return chat;
   }
@@ -157,7 +155,6 @@ export class OrdersService {
         car: {
           select: {
             name: true,
-            imageUrl: true,
           },
         },
       },
@@ -179,7 +176,6 @@ export class OrdersService {
         car: {
           select: {
             name: true,
-            imageUrl: true,
           },
         },
       },
@@ -195,7 +191,6 @@ export class OrdersService {
         car: {
           select: {
             name: true,
-            imageUrl: true,
           },
         },
         messages: {
