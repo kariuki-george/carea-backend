@@ -12,6 +12,8 @@ import { VerifyEmailDto } from './dto/verify-email.input';
 import { UpdateRoleResponse } from './res/updateRole.res';
 import { Address } from './entities/address.entity';
 import { SearchUserInput } from './dto/searchUser.dto';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../guards/jwt.guard';
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -72,7 +74,7 @@ export class UsersResolver {
   /**
    * Update user profile
    */
-
+  @UseGuards(JwtAuthGuard)
   @Mutation(() => User)
   updateProfile(@Args('profile') profile: UpdateUserInput): Promise<User> {
     return this.usersService.updateProfile(profile);
@@ -82,8 +84,10 @@ export class UsersResolver {
    * Resend Verify email.
    */
 
-  @Mutation(() => String)
-  resendVerifyEmail(@Args('userEmail') email: string): Promise<string> {
+  @Mutation(() => VerifyEmailResponse)
+  resendVerifyEmail(
+    @Args('userEmail') email: string
+  ): Promise<typeof VerifyEmailResponse> {
     return this.usersService.resendVerifyEmail(email);
   }
 
@@ -105,12 +109,12 @@ export class UsersResolver {
   }
 
   @Query(() => [Address])
-  getAddressByUserId(@Args('userId') userId: string) {
+  getAddressByUserId(@Args('userId') userId: number) {
     return this.usersService.getAddressesByUserId(userId);
   }
 
   @Query(() => User)
   getUserByEmailOrId(@Args('input') input: SearchUserInput): Promise<User> {
-    return this.usersService.getUserByIdOrEmail(input);
+    return this.usersService.getUser(input);
   }
 }

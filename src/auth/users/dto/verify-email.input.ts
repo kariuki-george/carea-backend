@@ -1,4 +1,5 @@
 import { InputType } from '@nestjs/graphql';
+import { IsEmail } from 'class-validator';
 
 /**
  * Verify user email
@@ -12,5 +13,6 @@ export class VerifyEmailDto {
   /**
    * User email
    */
+  @IsEmail()
   email: string;
 }

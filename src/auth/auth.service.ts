@@ -1,17 +1,20 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Request, Response } from 'express';
 import { PrismaService } from 'libs/database/prisma.service';
 
 import { LoginResponse } from './res/login.res';
-import { User, UserRoles } from './users/entities/user.entity';
-import { UsersService } from './users/users.service';
+import { User } from './users/entities/user.entity';
 
 export interface TokenPayload {
   userId: number;
   expires?: string;
-  version: number;
 }
 
 @Injectable()
@@ -19,46 +22,29 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly usersService: UsersService,
     private readonly prismaService: PrismaService
   ) {}
   async login(context: any): Promise<typeof LoginResponse> {
     try {
       const user: User = context.user;
-
-      const tokenPayload: TokenPayload = {
-        userId: user.id,
-        expires: '5m',
-        version: user.accessTokenVersion,
-      };
-      const token = this.jwtService.sign(tokenPayload);
-      const expires = new Date();
-
-      expires.setSeconds(
-        expires.getSeconds() +
-          this.configService.get<number>('REFRESH_JWT_EXPIRATION')
+      const { accessToken, refreshToken } = await this.accessAndRefreshTokenGen(
+        user.id
       );
 
-      const refreshTokenPayload: TokenPayload = {
-        userId: user.id,
-        expires: '1d',
+      await this.prismaService.users.update({
+        where: { id: user.id },
+        data: { lastSignInAt: new Date() },
+      });
 
-        version: user.refreshTokenVersion,
-      };
-
-      const refreshToken = this.jwtService.sign(refreshTokenPayload);
-      const domain =
-        this.configService.get<string>('NODE_ENV') === 'production'
-          ? '.vercel.app'
-          : 'localhost';
       context.res.cookie('rid', refreshToken, {
         httpOnly: true,
-        expires,
-        domain,
+        maxAge: 60 * 60 * 24,
+        secure: true,
+        sameSite: false, //TODO: UPDATE FOR STRICTER SECURITY,
       });
 
       return {
-        accessToken: token,
+        accessToken,
         user: {
           ...user,
         },
@@ -78,10 +64,8 @@ export class AuthService {
      */
     let payload: {
       userId: number;
-      version: number;
-      expires: string;
-      iat: number;
     };
+
     try {
       payload = this.jwtService.verify(cookie, {
         secret: this.configService.get<string>('JWT_SECRET'),
@@ -91,75 +75,69 @@ export class AuthService {
         throw new UnauthorizedException('Cannot refresh your token');
       }
     }
-    let user: User;
 
-    //verify refreshToken version and update user
-    try {
-      user = await this.prismaService.user.update({
-        where: { id: payload.userId },
-        data: {
-          accessTokenVersion: {
-            increment: 1,
-          },
-        },
-      });
-    } catch (error) {
-      user = null;
+    // CHeck if token has expired or revoked
+    const token = await this.prismaService.refreshTokens.findFirst({
+      where: { AND: { userId: payload.userId, token: cookie } },
+    });
+
+    if (!token) {
+      throw new NotFoundException("Refresh token doesn't exist");
     }
 
-    if (!user) {
-      throw new UnauthorizedException('Cookie not valid');
+    if (token.revoked) {
+      throw new BadRequestException('Token already revoked');
     }
 
-    if (user.refreshTokenVersion !== payload.version) {
-      throw new UnauthorizedException('Cookie not valid');
+    if (
+      Date.parse(token.created_at.toString()) + 1000 * 60 * 60 * 24 >
+      Date.now()
+    ) {
+      throw new BadRequestException('Token already expired');
     }
 
-    //create accessToken
+    const { accessToken, refreshToken } = await this.accessAndRefreshTokenGen(
+      payload.userId
+    );
+
+    res.cookie('rid', refreshToken, {
+      httpOnly: true,
+      maxAge: 60 * 60 * 24,
+      secure: true,
+      sameSite: false, //TODO: UPDATE FOR STRICTER SECURITY
+    });
+
+    return res.json(accessToken);
+  }
+
+  private async accessAndRefreshTokenGen(userId: number) {
+    // //create accessToken
     const accessPayload: TokenPayload = {
-      userId: user.id,
-      version: user.accessTokenVersion,
+      userId,
       expires: '5m',
     };
     const accessToken = this.jwtService.sign(accessPayload);
-    const expires = new Date();
-
-    expires.setSeconds(
-      expires.getSeconds() +
-        this.configService.get<number>('REFRESH_JWT_EXPIRATION')
-    );
 
     const refreshTokenPayload: TokenPayload = {
-      userId: user.id,
-      expires: '1hr',
-
-      version: user.refreshTokenVersion,
+      userId,
     };
 
     const refreshToken = this.jwtService.sign(refreshTokenPayload);
 
-    res.cookie('rid', refreshToken, {
-      httpOnly: true,
-      expires,
-    });
-
-    return res.json(accessToken);
+    return { accessToken, refreshToken };
   }
 
   async logout(res: Response, userId: number) {
     //clear refreshToken version
     try {
       if (userId) {
-        await this.prismaService.user.update({
-          where: { id: userId },
-          data: {
-            refreshTokenVersion: { increment: 1 },
-            accessTokenVersion: { increment: 1 },
-          },
+        await this.prismaService.refreshTokens.updateMany({
+          where: { id: userId, revoked: false },
+          data: { revoked: true },
         });
       }
     } catch (error) {}
 
-    return res.cookie('rid', '', { expires: new Date(), httpOnly: true });
+    return res.cookie('rid', '', { maxAge: 0, httpOnly: true });
   }
 }
