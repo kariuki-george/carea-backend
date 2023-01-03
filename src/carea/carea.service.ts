@@ -18,10 +18,6 @@ import { PrismaService } from 'libs/database/prisma.service';
 export class CareaService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  getHello(): string {
-    return 'Hello World!';
-  }
-
   async createCategory(
     input: CreateCategoryInput
   ): Promise<typeof CategoryResponse> {
@@ -53,6 +49,7 @@ export class CareaService {
     const existingCar = await this.prismaService.cars.findUnique({
       where: { name: input.name },
     });
+
     if (existingCar) {
       return {
         error: true,

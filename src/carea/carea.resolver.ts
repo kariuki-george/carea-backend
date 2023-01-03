@@ -1,4 +1,7 @@
+import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+import { AdminGuard } from 'src/auth/guards/admin.guard';
 import { CareaService } from './carea.service';
 import { CreateCarInput } from './dto/createCar.dto';
 import { CreateCategoryInput } from './dto/createCategory.dto';
@@ -15,10 +18,6 @@ import { GetCarsResponse } from './res/getCars.res';
 @Resolver('Carea')
 export class CareaResolver {
   constructor(private readonly careaService: CareaService) {}
-  @Query(() => String)
-  getHelllo() {
-    return this.careaService.getHello();
-  }
 
   @Query(() => GetCarsResponse)
   getCars(
@@ -27,6 +26,7 @@ export class CareaResolver {
     return this.careaService.getCars(getCarsInput);
   }
 
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Mutation(() => CategoryResponse)
   createCategory(
     @Args('createCategory') createCategory: CreateCategoryInput
@@ -39,6 +39,7 @@ export class CareaResolver {
     return this.careaService.getCarCategories();
   }
 
+  @UseGuards(JwtAuthGuard,AdminGuard)
   @Mutation(() => CarResponse)
   createCar(
     @Args('createCar') createCar: CreateCarInput

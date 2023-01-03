@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
 import { GqlExecutionContext } from '@nestjs/graphql';
 
 @Injectable()
-export class RolesGuard implements CanActivate {
+export class AdminGuard implements CanActivate {
   canActivate(
     context: ExecutionContext
   ): boolean | Promise<boolean> | Observable<boolean> {

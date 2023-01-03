@@ -14,13 +14,13 @@ import { Address } from './entities/address.entity';
 import { SearchUserInput } from './dto/searchUser.dto';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../guards/jwt.guard';
-import { RolesGuard } from '../guards/role.guard';
+import { AdminGuard } from '../guards/admin.guard';
 
 @Resolver(() => User)
 export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Query(() => [User])
   getAllUsers(): Promise<User[]> {
     return this.usersService.findAll();
