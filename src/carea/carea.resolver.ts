@@ -48,6 +48,7 @@ export class CareaResolver {
   }
 
   @Mutation(() => Review)
+  @UseGuards(JwtAuthGuard)
   createReviewOrRating(
     @Args('createReviewOrRating') input: CreateReviewInput
   ): Promise<Review> {
@@ -55,6 +56,8 @@ export class CareaResolver {
   }
 
   @Mutation(() => CarResponse)
+  @UseGuards(JwtAuthGuard,AdminGuard)
+
   updateCar(
     @Args('updateCar') updateCar: UpdateCarInput
   ): Promise<typeof CarResponse> {
