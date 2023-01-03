@@ -16,10 +16,4 @@ export class CreateAddressDto {
    */
   @IsString()
   details: string;
-  /**
-   * user's unique id
-   */
-
-  @IsInt()
-  userId: number;
 }

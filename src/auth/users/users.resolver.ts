@@ -14,10 +14,13 @@ import { Address } from './entities/address.entity';
 import { SearchUserInput } from './dto/searchUser.dto';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../guards/jwt.guard';
+import { RolesGuard } from '../guards/role.guard';
 
 @Resolver(() => User)
 export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Query(() => [User])
   getAllUsers(): Promise<User[]> {
     return this.usersService.findAll();
@@ -64,11 +67,13 @@ export class UsersResolver {
   /**
    *Create an address for the user. A user can create multiple addresses sequentially.
    */
+  @UseGuards(JwtAuthGuard)
   @Mutation(() => Address)
   createAddress(
-    @Args('createAddress') createAddress: CreateAddressDto
+    @Args('createAddress') createAddress: CreateAddressDto,
+    @Context() ctx
   ): Promise<Address> {
-    return this.usersService.createAddress(createAddress);
+    return this.usersService.createAddress(createAddress, ctx.req.user.id);
   }
 
   /**
@@ -76,8 +81,11 @@ export class UsersResolver {
    */
   @UseGuards(JwtAuthGuard)
   @Mutation(() => User)
-  updateProfile(@Args('profile') profile: UpdateUserInput): Promise<User> {
-    return this.usersService.updateProfile(profile);
+  updateProfile(
+    @Args('profile') profile: UpdateUserInput,
+    @Context() ctx
+  ): Promise<User> {
+    return this.usersService.updateProfile(profile, ctx.req.user.id);
   }
 
   /**
@@ -108,9 +116,10 @@ export class UsersResolver {
     return this.usersService.updateRole(userId, context.user);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Query(() => [Address])
-  getAddressByUserId(@Args('userId') userId: number) {
-    return this.usersService.getAddressesByUserId(userId);
+  getAddresses(@Context() ctx) {
+    return this.usersService.getAddressesByUserId(ctx.req.user.id);
   }
 
   @Query(() => User)

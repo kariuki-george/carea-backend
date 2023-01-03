@@ -18,7 +18,6 @@ export class AuthResolver {
   @Mutation(() => LoginResponse)
   login(
     @Args('loginInput') loginInput: LoginInputDto,
-
     @Context() context
   ): Promise<typeof LoginResponse> {
     return this.authService.login(context);

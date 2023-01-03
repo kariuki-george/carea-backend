@@ -1,21 +1,18 @@
 import { InputType } from '@nestjs/graphql';
-import { IsInt } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 @InputType()
 export class UpdateUserInput {
   /**
-   * Pass userId
-   */
-  @IsInt()
-  userId: number;
-  /**
    * firstname
    */
+  @IsString()
+  @IsOptional()
   firstName?: string;
   /**
    * lastname
    */
+  @IsString()
+  @IsOptional()
   lastName?: string;
-  name: string;
-  address: string;
 }
