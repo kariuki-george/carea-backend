@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "yarn prisma generate && nest build",
+    "build": "nest build",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch ",
@@ -39,6 +39,7 @@
     "@types/passport-local": "^1.0.34",
     "amqp-connection-manager": "^4.1.9",
     "amqplib": "^0.10.3",
+    "apollo-server-core": "^3.11.1",
     "apollo-server-express": "^3.11.1",
     "argon2": "^0.30.2",
     "body-parser": "^1.20.1",

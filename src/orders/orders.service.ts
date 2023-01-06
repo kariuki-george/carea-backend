@@ -1,20 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AddMessageInput } from './dto/addMessage.dto';
 import { CreateChatInput } from './dto/createChat.dto';
 import { CreateOfferInput } from './dto/createOffer.dto';
 import { UpdateOfferInput } from './dto/updateOffer.dto';
 import { Chat } from './entities/Chat.entity';
 import { Message } from './entities/messages.entity';
-import { Offer, OfferStatus } from './entities/Offer.entity';
+import { Offer } from './entities/Offer.entity';
 import { PrismaService } from 'libs/database/prisma.service';
-
 import { CreateOfferResponse } from './res/createOffer.res';
-import * as Chance from 'chance';
 import { CreateOrderInput } from './dto/createOrder.dto';
-
 import { CreateOrderResponse } from './res/createOrder.res';
 import { Order } from './entities/Order.entity';
 import { GetOffers } from './res/Offer.res';
+import { RmqService } from 'libs/rmq/rqm.service';
+import { User } from 'src/auth/users/entities/user.entity';
 
 interface validOffer {
   valid?: boolean;
@@ -24,68 +23,82 @@ interface validOffer {
 
 @Injectable()
 export class OrdersService {
-  private readonly chance = new Chance();
-  constructor(private prismaService: PrismaService) {}
-  getHello(): string {
-    return 'Hello World!';
-  }
+  constructor(
+    private prismaService: PrismaService,
+    private readonly emailService: RmqService
+  ) {}
+
   async createOffer(
-    input: CreateOfferInput
+    input: CreateOfferInput,
+    user: User
   ): Promise<typeof CreateOfferResponse> {
-    const { id, ...data } = input;
     try {
-      const offer = await this.prismaService.offers.upsert({
-        where: {
-          id: id,
+      const offer = await this.prismaService.offers.create({
+        data: {
+          carId: input.carId,
+          userId: user.id,
+          amount: input.amount,
         },
-        update: { status: OfferStatus.PROCESSING, amount: input.amount },
-        create: {
-          carId: data.carId,
-          userId: data.userId,
-          amount: data.amount,
+        include: {
+          car: {
+            select: {
+              name: true,
+            },
+          },
         },
+      });
+
+      this.emailService.publish('OFFER', 'OFFERCREATED', {
+        email: user.email,
+        amount: input.amount,
+        car: offer.car.name,
       });
 
       return {
         offer,
       };
     } catch (error) {
-      //Will require a double call as prisma does not perform findAndUpdate...
-      if (error.code === 'P2002') {
-        const offer = await this.prismaService.offers.findFirst({
-          where: {
-            AND: {
-              carId: input.carId,
-              userId: input.userId,
-            },
-          },
-          select: {
-            id: true,
-          },
-        });
-
-        return {
-          offer: await this.prismaService.offers.update({
-            where: { id: offer.id },
-            data: { amount: input.amount },
-          }),
-        };
-      }
       return {
         error: true,
-        message: 'An error occurred!',
+        message: error.message,
       };
     }
   }
 
-  updateOffer(input: UpdateOfferInput): Promise<Offer> {
+  async updateOffer(input: UpdateOfferInput, user: User): Promise<Offer> {
     const { id, ...data } = input;
-    return this.prismaService.offers.update({
+    // Check for the right permissions
+    if (data.status) {
+      // Only admin can update this
+      if (user.role === 'BUYER') {
+        throw new UnauthorizedException('User not authorized');
+      }
+    }
+    const offer = await this.prismaService.offers.update({
       where: {
         id: input.id,
       },
       data,
+      include: {
+        car: {
+          select: { name: true },
+        },
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
     });
+
+    await this.emailService.publish('OFFER', 'OFFERUPDATED', {
+      email: offer.user.email,
+      car: offer.car.name,
+      status: offer.status,
+      amount: offer.amount,
+    });
+
+    return offer;
   }
 
   getOffers(input: Partial<Offer>): Promise<GetOffers[]> {
@@ -205,13 +218,6 @@ export class OrdersService {
           },
         },
       },
-    });
-  }
-
-  acceptAndCreateOfferToken(id: number): Promise<Offer> {
-    return this.prismaService.offers.update({
-      where: { id },
-      data: { status: OfferStatus.ACCEPTED },
     });
   }
 

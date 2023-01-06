@@ -149,10 +149,8 @@ export class CareaService {
   createReviewOrRating(input: CreateReviewInput): Promise<Review> {
     const { id, ...data } = input;
     //check if a rating or review with the userId exists
-    return this.prismaService.reviews.upsert({
-      where: { id: input.id },
-      create: data,
-      update: data,
+    return this.prismaService.reviews.create({
+      data,
     });
   }
   async getCarById(carId: number): Promise<Car> {

@@ -101,7 +101,7 @@ export class UsersResolver {
 
   @Query(() => String)
   beep() {
-    return 'boop!';
+    return 'bop!';
   }
 
   /**

@@ -1,4 +1,4 @@
-import { RabbitRPC, RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
+import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
 // import { RmqService } from 'libs/rmq/rqm.service';
@@ -73,6 +73,53 @@ export class EmailsService {
           name: user.email,
         },
         template: '../src/emails/templates/changePassword',
+      });
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  @RabbitSubscribe({
+    exchange: 'OFFER',
+    routingKey: 'OFFERCREATED',
+    queue: 'OFFER-OFFERCREATED',
+  })
+  async offerCreatedEmail(data: any) {
+    try {
+      return await this.sendEmail({
+        to: data.email,
+
+        subject: '[Carea]: Offer to buy a car!',
+        templateContext: {
+          name: data.email,
+          car: data.car,
+          amount: data.amount,
+        },
+        template: '../src/emails/templates/offerCreated',
+      });
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  @RabbitSubscribe({
+    exchange: 'OFFER',
+    routingKey: 'OFFERUPDATED',
+    queue: 'OFFER-OFFERUPDATED',
+  })
+  async offerUpdatedEmail(data: any) {
+    try {
+      return await this.sendEmail({
+        to: data.email,
+
+        subject: '[Carea]: Offer has been updated!',
+        templateContext: {
+          name: data.email,
+          car: data.car,
+          amount: data.amount,
+          status: data.status,
+        },
+        template: '../src/emails/templates/offerUpdated',
       });
     } catch (error) {
       throw new Error(error);

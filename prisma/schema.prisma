@@ -39,6 +39,7 @@ model users {
   emailVerifyToken String?
   passwordChangeToken String?
   refreshToken refreshTokens[]
+  offer offers[]
   @@unique([email])
 }
 
@@ -104,7 +105,7 @@ model cars {
   reviews      reviews[]
   
   chats chats[]
-  offer offers?
+  offer offers[]
   @@unique([name])
 }
 
@@ -140,11 +141,13 @@ model offers {
   id  Int      @id @default(autoincrement())
   status OfferStatus   @default(PROCESSING)
   amount Int
+
+  user users @relation(fields: [userId],references: [id])
   userId Int
   car cars @relation(fields: [carId],references: [id])
-  carId Int @unique
+  carId Int
   valid Boolean @default(true)
- 
+
    order orders?
 }
 

@@ -1,5 +1,5 @@
 import { UseGuards } from '@nestjs/common';
-import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Context, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 import { AddMessageInput } from './dto/addMessage.dto';
 import { CreateChatInput } from './dto/createChat.dto';
@@ -20,24 +20,27 @@ import { GetOffers } from './res/Offer.res';
 export class OrdersResolver {
   constructor(private readonly ordersService: OrdersService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Mutation(() => CreateOfferResponse)
   createOffer(
-    @Args('createOffer') createOffer: CreateOfferInput
+    @Args('createOffer') createOffer: CreateOfferInput, @Context() ctx
   ): Promise<typeof CreateOfferResponse> {
-    return this.ordersService.createOffer(createOffer);
+    return this.ordersService.createOffer(createOffer,ctx.req.user);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Mutation(() => Offer)
   updateOffer(
-    @Args('updateOffer') updateOffer: UpdateOfferInput
+    @Args('updateOffer') updateOffer: UpdateOfferInput,@Context() ctx
   ): Promise<Offer> {
-    return this.ordersService.updateOffer(updateOffer);
+    return this.ordersService.updateOffer(updateOffer,ctx.req.user);
   }
 
   @UseGuards(JwtAuthGuard)
   @Query(() => [GetOffers], {
     description: 'If no inputs, returns all offers else by input',
   })
+  
   getOffers(@Args('getOffer') getOffers: GetOfferInput): Promise<GetOffers[]> {
     return this.ordersService.getOffers(getOffers);
   }
@@ -79,10 +82,6 @@ export class OrdersResolver {
     return this.ordersService.getChats();
   }
 
-  @Mutation(() => Offer, { description: 'OfferId is the token' })
-  acceptAndCreateOfferToken(@Args('offerId') offerId: number): Promise<Offer> {
-    return this.ordersService.acceptAndCreateOfferToken(offerId);
-  }
 
   @Mutation(() => CreateOrderResponse, {
     description: 'Takes in an optional token argument',
