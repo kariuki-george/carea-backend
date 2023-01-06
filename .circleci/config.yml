@@ -7,7 +7,8 @@ jobs:
       name: node/default
     steps:
       - checkout
-      - node/install-packages
+      - run:
+          command: yarn
       - run:
           command: yarn test
           
