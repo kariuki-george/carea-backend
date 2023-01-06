@@ -37,4 +37,5 @@ lerna-debug.log*
 # env var
 .env
 
-bugs.txt
+bugs
+pnpm-lock.yaml
