@@ -1,7 +1,6 @@
 import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
-// import { RmqService } from 'libs/rmq/rqm.service';
 
 interface User {
   email: string;

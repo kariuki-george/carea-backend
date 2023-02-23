@@ -1,6 +1,6 @@
-import { ErrorInterface as Error } from '@carea/common/interfaces/error.entity';
 import { createUnionType } from '@nestjs/graphql';
 import { User } from '../entities/user.entity';
+import { GraphQLError } from 'graphql';
 
 export const CreateUserResponse = createUnionType({
   name: 'CreateUserResponse',
@@ -13,7 +13,7 @@ export const CreateUserResponse = createUnionType({
       return User;
     }
     if (value.error) {
-      return Error;
+      return  {error:boolean;message:string};
     }
     return null;
   },

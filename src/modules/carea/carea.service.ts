@@ -12,7 +12,7 @@ import { CategoryResponse } from './res/createCategory.res';
 import { GetCarsResponse } from './res/getCars.res';
 
 import { Car } from './entities/car.entity';
-import { PrismaService } from 'libs/database/prisma.service';
+import { PrismaService } from 'src/providers/database/prisma.service';
 
 @Injectable()
 export class CareaService {

@@ -23,14 +23,12 @@ import { UpdateUserInput } from './dto/update-user.input';
 import { UpdateRoleResponse } from './res/updateRole.res';
 
 import { Address } from './entities/address.entity';
-import { PrismaService } from 'libs/database/prisma.service';
-import { RmqService } from 'libs/rmq/rqm.service';
+import { PrismaService } from 'src/providers/database/prisma.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly emailService: RmqService,
 
     @Inject(CACHE_MANAGER) private cacheService: Cache
   ) {}

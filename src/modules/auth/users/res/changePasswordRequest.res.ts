@@ -1,5 +1,5 @@
-import { ErrorInterface as Error } from '@carea/common/interfaces/error.entity';
 import { createUnionType, ObjectType } from '@nestjs/graphql';
+import { GraphQLError } from 'graphql';
 
 /**
  * returns the status of the verification process
@@ -20,7 +20,7 @@ export const ChangePasswordRequestResponse = createUnionType({
       return ChangePasswordRequest;
     }
     if (value.error) {
-      return Error;
+      return  {error:boolean;message:string};
     }
     return null;
   },

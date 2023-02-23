@@ -6,7 +6,7 @@ import { UpdateOfferInput } from './dto/updateOffer.dto';
 import { Chat } from './entities/Chat.entity';
 import { Message } from './entities/messages.entity';
 import { Offer } from './entities/Offer.entity';
-import { PrismaService } from 'libs/database/prisma.service';
+import { PrismaService } from 'src/providers/database/prisma.service';
 import { CreateOfferResponse } from './res/createOffer.res';
 import { CreateOrderInput } from './dto/createOrder.dto';
 import { CreateOrderResponse } from './res/createOrder.res';

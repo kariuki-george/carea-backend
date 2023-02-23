@@ -1,6 +1,6 @@
 import { createUnionType, Field, ObjectType } from '@nestjs/graphql';
-import { ErrorInterface as Error } from '@carea/common/interfaces/error.entity';
 import { Car } from '../entities/car.entity';
+import { GraphQLError } from 'graphql';
 
 @ObjectType()
 class CarRes {
@@ -17,7 +17,7 @@ export const CarResponse = createUnionType({
       return CarRes;
     }
     if (value.error) {
-      return Error;
+      return  {error:boolean;message:string};
     }
     return null;
   },

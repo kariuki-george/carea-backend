@@ -1,6 +1,7 @@
 import { createUnionType, ObjectType } from '@nestjs/graphql';
-import { ErrorInterface as Error } from '@carea/common/interfaces/error.entity';
 import { User } from '../users/entities/user.entity';
+import { GraphQLError } from 'graphql';
+
 
 @ObjectType()
 class Login {
@@ -18,8 +19,10 @@ export const LoginResponse = createUnionType({
       return Login;
     }
     if (value.error) {
-      return Error;
+      return  {error:boolean;message:string};
     }
     return null;
   },
 });
+
+

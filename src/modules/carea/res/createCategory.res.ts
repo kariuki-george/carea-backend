@@ -1,6 +1,6 @@
 import { createUnionType, Field, ObjectType } from '@nestjs/graphql';
 import { Category } from '../entities/category.entity';
-import { ErrorInterface as Error } from '@carea/common/interfaces/error.entity';
+import { GraphQLError } from 'graphql';
 
 @ObjectType()
 class CategoryRes {
@@ -18,7 +18,7 @@ export const CategoryResponse = createUnionType({
       return CategoryRes;
     }
     if (value.error) {
-      return Error;
+      return  {error:boolean;message:string};
     }
     return null;
   },

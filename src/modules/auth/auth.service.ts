@@ -7,7 +7,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Request, Response } from 'express';
-import { PrismaService } from 'libs/database/prisma.service';
+import { PrismaService } from 'src/providers/database/prisma.service';
 
 import { LoginResponse } from './res/login.res';
 import { User } from './users/entities/user.entity';
