@@ -8,17 +8,17 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
-    "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\" ",
     "start": "nest start",
     "start:dev": "nest start --watch ",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "lint": "eslint \"{src,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./apps/carea-backend/test/jest-e2e.json",
+    "test:e2e": "jest ",
     "prepare": "husky install"
   },
   "dependencies": {
@@ -111,12 +111,9 @@
     ],
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",
-    "moduleNameMapper": {
-      "@carea/common(|/.*)$": "<rootDir>/libs/common/src/$1",
-      "@prisma/prisma(|/.*)$": "<rootDir>/libs/prisma/src/$1"
-    },
+    "moduleNameMapper": {},
     "roots": [
-      "<rootDir>/apps/"
+      "<rootDir>/src/"
     ]
   }
 }

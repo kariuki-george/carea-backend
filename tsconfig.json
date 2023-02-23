@@ -18,18 +18,11 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@carea/common": [
-        "libs/common/src"
+      "@providers": [
+        "src/providers"
       ],
-      "@carea/common/*": [
-        "libs/common/src/*"
-      ],
-      "@prisma/prisma": [
-        "libs/prisma/src"
-      ],
-      "@prisma/prisma/*": [
-        "libs/prisma/src/*"
-      ]
+   
+     
     }
   }
 }
