@@ -19,9 +19,6 @@ import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
       driver: ApolloDriver,
       cors: {
         credentials: true,
-<<<<<<< HEAD:apps/carea-backend/src/app.module.ts
-        //origin: ['http://localhost:3000', 'http://localhost:3100', "/\.vercel\.app$/"],
-=======
         origin: [
           'http://localhost:3000',
           'http://localhost:3100',
@@ -29,17 +26,13 @@ import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
           'https://ssl.kariukigeorge.me/graphql',
           'https://studio.apollographql.com',
         ],
->>>>>>> origin:src/app.module.ts
       },
       autoSchemaFile: true,
       context: ({ req, res }) => ({ req, res }),
       introspection: true,
       cache: 'bounded',
-<<<<<<< HEAD:apps/carea-backend/src/app.module.ts
-=======
       plugins: [ApolloServerPluginLandingPageLocalDefault],
       playground: false,
->>>>>>> origin:src/app.module.ts
     }),
     ConfigModule.forRoot({
       isGlobal: true,
