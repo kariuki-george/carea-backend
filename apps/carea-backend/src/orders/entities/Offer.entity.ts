@@ -10,15 +10,13 @@ registerEnumType(OfferStatus, {
   name: 'OfferStatus',
 });
 
-
-
 @ObjectType()
 export class Offer {
-  id?: string;
-  carId?: string;
-  userId?: string;
+  id?: number;
+  carId?: number;
+  userId?: number;
   amount?: number;
- 
+
   @Field(() => OfferStatus)
   status?: string;
 }

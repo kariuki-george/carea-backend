@@ -1,10 +1,15 @@
-import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  CACHE_MANAGER,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserInput } from './dto/create-user.input';
 import * as argon2 from 'argon2';
 import { AuthenticationError, UserInputError } from 'apollo-server-express';
 import { User, UserRoles } from './entities/user.entity';
 import { CreateUserResponse } from './res/createUser.res';
-import { lastValueFrom } from 'rxjs';
 
 import * as Chance from 'chance';
 import { Cache } from 'cache-manager';
@@ -19,9 +24,7 @@ import { UpdateRoleResponse } from './res/updateRole.res';
 
 import { Address } from './entities/address.entity';
 import { PrismaService } from 'libs/database/prisma.service';
-import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { RmqService } from 'libs/rmq/rqm.service';
-import { SearchUserInput } from './dto/searchUser.dto';
 
 @Injectable()
 export class UsersService {
@@ -38,16 +41,10 @@ export class UsersService {
    * @param password
    * @returns user
    */
-  async validateUser(email: string, password: string) {
+  async validateUser(email: string, pass: string) {
     let user: User;
-
-    user = await this.prismaService.user.update({
-      where: { email },
-      data: {
-        accessTokenVersion: { increment: 1 },
-        refreshTokenVersion: { increment: 1 },
-      },
-    });
+    // TODO: update tokens
+    user = await this.getUser({ email });
 
     if (!user) {
       throw new UserInputError('User not found');
@@ -56,32 +53,49 @@ export class UsersService {
       throw new AuthenticationError('Your email is not verified!');
     }
 
-    const passwordIsValid = await argon2.verify(user.password, password);
+    const passwordIsValid = await argon2.verify(user.password, pass);
     if (!passwordIsValid) {
       throw new UserInputError('Credentials are not valid');
     }
+    const { password, ...formattedUser } = user;
 
-    return user;
+    return formattedUser;
   }
-  getUser(getUserArgs: Partial<User>) {
+
+  async getUser(getUserArgs: Partial<User>): Promise<User> {
     const { email, id } = getUserArgs;
-    return this.prismaService.user.findUnique({
+    // Check in cache
+    let user: User = await this.cacheService.get('user-' + id);
+    if (user) {
+      return user;
+    }
+
+    user = await this.prismaService.users.findUnique({
       where: {
         email,
         id,
       },
     });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.cacheService.set('user-' + user.id, user);
+
+    return user;
   }
 
   findAll(): Promise<User[]> {
-    return this.prismaService.user.findMany();
+    return this.prismaService.users.findMany();
   }
 
   async createUser(input: CreateUserInput): Promise<typeof CreateUserResponse> {
     /**validate email  */
     let user: User;
+
     try {
-      user = await this.prismaService.user.create({
+      user = await this.prismaService.users.create({
         data: {
           email: input.email,
           password: await argon2.hash(input.password),
@@ -94,7 +108,7 @@ export class UsersService {
           message: 'Email already in use',
         };
       }
-      console.log(error);
+
       return {
         error: true,
         message: 'An error occurred! ',
@@ -104,9 +118,20 @@ export class UsersService {
     /**
      * send verify email
      */
-    await this.sendVerifyEmail(user.email);
 
-    return user;
+    // create a token
+    try {
+      const token = this.createToken();
+      await this.prismaService.users.update({
+        where: { id: user.id },
+        data: { emailVerifyToken: token },
+      });
+      await this.sendVerifyEmail(user.email, token);
+
+      return user;
+    } catch (error) {
+      // TODO: handle errors
+    }
   }
 
   private async sendEmail(pattern: string, data: {}) {
@@ -118,38 +143,34 @@ export class UsersService {
     token,
     email,
   }: VerifyEmailDto): Promise<typeof VerifyEmailResponse> {
-    const cache: { email: string } = await this.cacheService.get(token);
-
-    if (!cache) {
+    // Check if email is valid
+    const user = await this.prismaService.users.findUnique({
+      where: { email },
+    });
+    if (!user) {
       return {
         error: true,
-        message: "Token already expired or doesn't exist!",
+        message: "This user doesn't exist",
       };
     }
 
-    if (cache.email !== email) {
+    if (user.emailVerifyToken != token) {
       return {
         error: true,
         message: 'Invalid token!',
       };
     }
 
-    await this.cacheService.del(token);
-    await this.prismaService.user.update({
+    await this.prismaService.users.update({
       where: { email },
-      data: { verified: true },
+      data: { verified: true, emailVerifyToken: null },
     });
     return {
       success: true,
     };
   }
 
-  private async sendVerifyEmail(email: string) {
-    /**
-     * create a token. Cache it with a specified ttl. Email token for verification.
-     */
-
-    const token = await this.createTokenAndCacheIt({ email });
+  private async sendVerifyEmail(email: string, token: string) {
     await this.sendEmail('user_verifyEmail', {
       email: email,
       token,
@@ -157,29 +178,39 @@ export class UsersService {
     });
   }
 
-  private async createTokenAndCacheIt(data: {}) {
+  private createToken() {
     const chance = new Chance();
     const token = chance.hash();
-
-    await this.cacheService.set(
-      token,
-      {
-        ...data,
-      },
-      {
-        ttl: 60 * 60,
-      }
-    );
     return token;
   }
 
-  async resendVerifyEmail(email: string): Promise<string> {
-    await this.sendVerifyEmail(email);
-    return 'Check your email!';
+  async resendVerifyEmail(email: string): Promise<typeof VerifyEmailResponse> {
+    // Verify user exists
+    const user = await this.getUser({ email });
+    if (!user) {
+      return { error: true, message: 'user not found' };
+    }
+
+    await this.sendVerifyEmail(email, user.emailVerifyToken);
+    return { message: 'Check your email!', success: true };
   }
 
   async changePasswordRequest(email: string): Promise<string> {
-    const token = await this.createTokenAndCacheIt({ email });
+    // Validate email
+    const user = await this.getUser({ email });
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    const token = this.createToken();
+    // Save this token
+    await this.prismaService.users.update({
+      where: { id: user.id },
+      data: { passwordChangeToken: token },
+    });
+
+    await this.cacheService.del('user-' + user.id);
     await this.sendEmail('user_passwordReset', { email, token });
     return 'Check your email!';
   }
@@ -189,29 +220,24 @@ export class UsersService {
     email,
     password,
   }: ChangePasswordDto): Promise<typeof ChangePasswordRequestResponse> {
-    const cache: { email: string } = await this.cacheService.get(token);
-    /**
-     * Validate email
-     */
-    if (!cache) {
-      return {
-        message: 'Sorry but token already expired. Try again!',
-        error: true,
-      };
-    }
-    if (cache.email !== email) {
-      return {
-        error: true,
-        message: 'Sorry but wrong email provided. Try again!',
-      };
-    }
-    await this.cacheService.del(token);
-
+    //  Validate token
     /**
      * update user password
      */
 
-    await this.prismaService.user.update({
+    const user = await this.prismaService.users.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    if (user.passwordChangeToken != token) {
+      throw new BadRequestException('Token is invalid');
+    }
+
+    await this.prismaService.users.update({
       where: { email },
       data: {
         password: await argon2.hash(password),
@@ -223,7 +249,10 @@ export class UsersService {
     };
   }
 
-  createAddress({ name, details, userId }: CreateAddressDto): Promise<Address> {
+  createAddress(
+    { name, details }: CreateAddressDto,
+    userId: number
+  ): Promise<Address> {
     return this.prismaService.addresses.create({
       data: {
         details,
@@ -233,17 +262,15 @@ export class UsersService {
     });
   }
 
-  updateProfile(profile: UpdateUserInput): Promise<User> {
-    const { userId, name, address, ...data } = profile;
-    this.createAddress({ name, userId, details: address });
-    return this.prismaService.user.update({
-      where: { id: profile.userId },
-      data,
+  updateProfile(profile: UpdateUserInput, userId: number): Promise<User> {
+    return this.prismaService.users.update({
+      where: { id: userId },
+      data: profile,
     });
   }
 
   async updateRole(
-    userId: string,
+    userId: number,
     admin: User
   ): Promise<typeof UpdateRoleResponse> {
     /**
@@ -257,7 +284,7 @@ export class UsersService {
     //   };
     // }
 
-    await this.prismaService.user.update({
+    await this.prismaService.users.update({
       where: { id: userId },
       data: {
         role: UserRoles.SUBADMIN,
@@ -268,20 +295,7 @@ export class UsersService {
     };
   }
 
-  getAddressesByUserId(userId: string): Promise<Address[]> {
-    return this.prismaService.addresses.findMany();
-  }
-
-  getUserByIdOrEmail(input: SearchUserInput): Promise<User> {
-    return this.prismaService.user.findFirst({
-      where: {
-        OR: {
-          email: {
-            contains: input.email,
-          },
-          id: input.id,
-        },
-      },
-    });
+  getAddressesByUserId(userId: number): Promise<Address[]> {
+    return this.prismaService.addresses.findMany({ where: { userId } });
   }
 }

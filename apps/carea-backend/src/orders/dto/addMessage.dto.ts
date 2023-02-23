@@ -1,8 +1,10 @@
 import { InputType } from '@nestjs/graphql';
+import { IsInt } from 'class-validator';
 
 @InputType()
 export class AddMessageInput {
   message: string;
-  chatId: string;
-  userId: string;
+  @IsInt()
+  chatId: number;
+  userId: number;
 }

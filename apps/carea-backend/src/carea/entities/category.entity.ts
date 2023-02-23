@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import {  ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
 export class Category {
@@ -6,7 +6,7 @@ export class Category {
    * Category unique id
    */
 
-  id: string;
+  id: number;
 
   /**
    * Category name

@@ -1,4 +1,5 @@
 import { InputType } from '@nestjs/graphql';
+import { IsInt, IsOptional } from 'class-validator';
 
 @InputType()
 export class CreateReviewInput {
@@ -9,7 +10,8 @@ export class CreateReviewInput {
   /**
    * Reviewer unique id
    */
-  userId: string;
+  @IsInt()
+  userId: number;
   /**
    * Names of the review
    */
@@ -18,7 +20,9 @@ export class CreateReviewInput {
    * Ratings
    */
   rating?: number;
-
-  carId: string;
-  id?:string
+  @IsInt()
+  carId: number;
+  @IsInt()
+  @IsOptional()
+  id?: number;
 }

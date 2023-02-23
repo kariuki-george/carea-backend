@@ -1,5 +1,5 @@
 import { InputType } from '@nestjs/graphql';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString } from 'class-validator';
 
 /**
  * Create an address for a user
@@ -16,10 +16,4 @@ export class CreateAddressDto {
    */
   @IsString()
   details: string;
-  /**
-   * user's unique id
-   */
-  @IsString()
-
-  userId: string;
 }

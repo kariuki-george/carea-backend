@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { CreateCarInput } from './dto/createCar.dto';
 import { CreateCategoryInput } from './dto/createCategory.dto';
@@ -18,16 +18,12 @@ import { PrismaService } from 'libs/database/prisma.service';
 export class CareaService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  getHello(): string {
-    return 'Hello World!';
-  }
-
   async createCategory(
     input: CreateCategoryInput
   ): Promise<typeof CategoryResponse> {
     //validate the category uniqueness
 
-    const category = await this.prismaService.category.findUnique({
+    const category = await this.prismaService.categories.findUnique({
       where: { name: input.name },
     });
     if (category) {
@@ -36,7 +32,7 @@ export class CareaService {
         message: 'A category with the provided name already exists',
       };
     }
-    const newCategory = await this.prismaService.category.create({
+    const newCategory = await this.prismaService.categories.create({
       data: input,
     });
 
@@ -50,9 +46,10 @@ export class CareaService {
      *
      * Validate whether such a car exists
      */
-    const existingCar = await this.prismaService.car.findUnique({
+    const existingCar = await this.prismaService.cars.findUnique({
       where: { name: input.name },
     });
+
     if (existingCar) {
       return {
         error: true,
@@ -60,7 +57,7 @@ export class CareaService {
       };
     }
 
-    const car = await this.prismaService.car.create({
+    const car = await this.prismaService.cars.create({
       data: { ...input, name: input.name.toLowerCase() },
     });
 
@@ -72,7 +69,7 @@ export class CareaService {
   async updateCar(input: UpdateCarInput): Promise<typeof CarResponse> {
     const { categoryId, ...data } = input;
     try {
-      const car = await this.prismaService.car.update({
+      const car = await this.prismaService.cars.update({
         where: { id: input.carId },
         data,
       });
@@ -86,7 +83,7 @@ export class CareaService {
 
   async getCars(input: GetCarsInput): Promise<GetCarsResponse> {
     let results: Car[];
-    let nextPage: string | false;
+    let nextPage: number | false;
     const {
       startIndex,
       limit,
@@ -96,7 +93,7 @@ export class CareaService {
     } = input;
 
     if (startIndex) {
-      results = await this.prismaService.car.findMany({
+      results = await this.prismaService.cars.findMany({
         take: limit + 1,
         cursor: {
           id: startIndex,
@@ -115,7 +112,7 @@ export class CareaService {
         },
       });
     } else {
-      results = await this.prismaService.car.findMany({
+      results = await this.prismaService.cars.findMany({
         take: limit + 1,
         where: {
           OR: {
@@ -146,19 +143,23 @@ export class CareaService {
   }
 
   getCarCategories(): Promise<Category[]> {
-    return this.prismaService.category.findMany();
+    return this.prismaService.categories.findMany();
   }
 
   createReviewOrRating(input: CreateReviewInput): Promise<Review> {
     const { id, ...data } = input;
     //check if a rating or review with the userId exists
-    return this.prismaService.review.upsert({
-      where: { id: input.id },
-      create: data,
-      update: data,
+    return this.prismaService.reviews.create({
+      data,
     });
   }
-  getCarById(carId: string): Promise<Car> {
-    return this.prismaService.car.findUnique({ where: { id: carId } });
+  async getCarById(carId: number): Promise<Car> {
+    const car = await this.prismaService.cars.findUnique({
+      where: { id: carId },
+    });
+
+    if (car) return car;
+
+    throw new NotFoundException('Car not found');
   }
 }

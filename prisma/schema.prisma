@@ -3,9 +3,13 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+
+
+// User and auth
 
 enum Role {
   ADMIN
@@ -14,33 +18,42 @@ enum Role {
 }
 
 model addresses {
-  id      String @id @default(auto()) @map("_id") @db.ObjectId
-  details String
-  name    String
-  user  user @relation(fields: [userId], references: [id])
-  userId String @db.ObjectId
+  id     Int      @id @default(autoincrement())
+  details String   
+  name    String   
+  user  users @relation(fields: [userId], references: [id])
+  userId Int
 }
 
-
-
-
-
-model user {
-  id        String         @id @default(auto()) @map("_id") @db.ObjectId
+model users {
+  id        Int @id @default(autoincrement())
   address   addresses[]
-  email     String
-  firstName String?
-  lastName  String?
-  password  String 
+  email     String   
+  firstName String?   
+  lastName  String?   
+  password  String    
   role      Role @default(BUYER)
   verified  Boolean?     @default(false)
-  chats chat[]
-  accessTokenVersion Int? @default(0)
-  refreshTokenVersion Int? @default(0)
-
+  chats   chats[]
+  lastSignInAt DateTime?
+  emailVerifyToken String?
+  passwordChangeToken String?
+  refreshToken refreshTokens[]
+  offer offers[]
   @@unique([email])
 }
 
+
+// auth
+model refreshTokens{
+  id Int @id @default(autoincrement())
+  revoked Boolean @default(false)
+  created_at DateTime @default(now())
+  updated_at  DateTime @default(now())
+  user users @relation(fields:[userId],references:[id])
+  userId Int
+  token String
+}
 
 
 //carea
@@ -50,41 +63,49 @@ enum CarCondition {
   USED
 }
 
-model category {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
-  imageUrl String
-  name     String 
-  cars    car[]
+model categories {
+  id      Int      @id @default(autoincrement())
+  imageUrl String   @db.Text
+  name     String     @unique
+  cars    cars[]
 
-  @@unique([name])
+
 }
 
-model review {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+model reviews {
+  id  Int   @id @default(autoincrement())
   rating Float?
-  name String?
-  review String?
-  userId  String
-  car   car @relation(fields: [carId], references: [id])
-  carId String @db.ObjectId
+  name String?   
+  review String? 
+  userId  Int  
+  car   cars @relation(fields: [carId], references: [id])
+  carId Int
 }
 
-model car {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+model carGallery{
+id Int @id @default(autoincrement())
+imageUrl String 
+car cars @relation(fields: [carId],references: [id])
+carId Int
+}
+
+model cars {
+  id        Int   @id @default(autoincrement())
   checkout   Boolean @default(false)
   condition  CarCondition @default(NEW)
-  desc       String
-  gallery    String[]
-  imageUrl   String
+  desc       String 
+  gallery    carGallery[]
+ 
   name       String   
   price      Int
   publish    Boolean @default(false)
   stock      Int
-  category    category @relation(fields: [categoryId], references: [id])
-  categoryId   String  @db.ObjectId  
-  reviews      review[]
-  chats chat[]
-  offer offer?
+  category    categories @relation(fields: [categoryId], references: [id])
+  categoryId   Int  
+  reviews      reviews[]
+  
+  chats chats[]
+  offer offers[]
   @@unique([name])
 }
 
@@ -105,43 +126,45 @@ enum OrderStatus {
   UNPAID
 }
 
-model order {
-   id       String @id @default(auto()) @map("_id") @db.ObjectId
-   userId   String
-   addressId    String
+model orders {
+   id      Int      @id @default(autoincrement())
+   userId   Int
+   addressId    Int
    status     OrderStatus @default(PROCESSING)
-   carId  String
-   offer offer? @relation(fields: [offerId],references: [id])
-   offerId String? @db.ObjectId @unique
+   carId  Int
+   offer offers? @relation(fields: [offerId],references: [id])
+   offerId  Int @unique
 
 }
 
-model offer {
-  id   String @id @default(auto()) @map("_id") @db.ObjectId
+model offers {
+  id  Int      @id @default(autoincrement())
   status OfferStatus   @default(PROCESSING)
   amount Int
-  userId String
-  car car @relation(fields: [carId],references: [id])
-  carId String @db.ObjectId @unique
+
+  user users @relation(fields: [userId],references: [id])
+  userId Int
+  car cars @relation(fields: [carId],references: [id])
+  carId Int
   valid Boolean @default(true)
- 
-   order order?
+
+   order orders?
 }
 
-model chat {
-    id   String @id @default(auto()) @map("_id") @db.ObjectId
-    user user @relation(fields: [userId], references: [id])
-    userId String @db.ObjectId
-    car  car @relation(fields: [carId], references: [id])
-    carId   String @db.ObjectId
-    messages message[]
+model chats {
+    id  Int      @id @default(autoincrement())
+    user users @relation(fields: [userId], references: [id])
+    userId Int
+    car  cars @relation(fields: [carId], references: [id])
+    carId   Int
+    messages messages[]
 }
 
-model message{
-  id    String @id @default(auto()) @map("_id") @db.ObjectId
-  userId String @db.ObjectId 
+model messages{
+  id   Int      @id @default(autoincrement())
+  userId Int 
   message String
-  chat   chat   @relation(fields: [chatId], references: [id])
-  chatId String @db.ObjectId 
+  chat   chats   @relation(fields: [chatId], references: [id])
+  chatId Int 
   createdAt DateTime @default(now())
 }

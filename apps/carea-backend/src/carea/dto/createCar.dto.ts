@@ -1,14 +1,7 @@
-import {
-  Field,
-  ID,
-  InputType,
-  Int,
-  PartialType,
-  registerEnumType,
-} from '@nestjs/graphql';
+import { Field, InputType, Int, registerEnumType } from '@nestjs/graphql';
 import {
   IsArray,
-  IsBoolean,
+  IsInt,
   IsNotEmpty,
   IsNumber,
   IsPositive,
@@ -43,11 +36,7 @@ export class CreateCarInput {
   @IsString()
   desc: string;
 
-  @Field(() => [String])
-  @IsArray()
-  gallery: [string];
-  @IsUrl()
-  imageUrl: string;
-  @IsNotEmpty()
-  categoryId: string;
+  @IsInt()
+  @IsPositive()
+  categoryId: number;
 }

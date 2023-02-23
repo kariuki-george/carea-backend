@@ -10,7 +10,8 @@ export class AuthController {
     return this.authService.refreshToken(req, res);
   }
   @Get('logout/:userId')
-  async logout(@Res() res: Response, @Param('userId') userId: string) {
-    return this.authService.logout(res, userId.split('=')[1]);
+  async logout(@Res() res: Response, @Param('userId') userId: number) {
+    return this.authService.logout(res, userId);
   }
 }
+

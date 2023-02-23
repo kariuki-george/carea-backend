@@ -13,10 +13,10 @@ registerEnumType(OrderStatus, { name: 'OrderStatus' });
 
 @ObjectType()
 export class Order {
-  id: string;
-  userId: string;
-  addressId: string;
+  id: number;
+  userId: number;
+  addressId: number;
   @Field(() => OrderStatus)
   status: string;
-  carId: string;
+  carId: number;
 }

@@ -1,21 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AddMessageInput } from './dto/addMessage.dto';
 import { CreateChatInput } from './dto/createChat.dto';
 import { CreateOfferInput } from './dto/createOffer.dto';
 import { UpdateOfferInput } from './dto/updateOffer.dto';
 import { Chat } from './entities/Chat.entity';
 import { Message } from './entities/messages.entity';
-import { Offer, OfferStatus } from './entities/Offer.entity';
+import { Offer } from './entities/Offer.entity';
 import { PrismaService } from 'libs/database/prisma.service';
-
 import { CreateOfferResponse } from './res/createOffer.res';
-import * as Chance from 'chance';
 import { CreateOrderInput } from './dto/createOrder.dto';
-
 import { CreateOrderResponse } from './res/createOrder.res';
 import { Order } from './entities/Order.entity';
 import { GetOffers } from './res/Offer.res';
-import { ObjectId } from 'bson';
+import { RmqService } from 'libs/rmq/rqm.service';
+import { User } from 'src/auth/users/entities/user.entity';
 
 interface validOffer {
   valid?: boolean;
@@ -25,79 +23,92 @@ interface validOffer {
 
 @Injectable()
 export class OrdersService {
-  private readonly chance = new Chance();
-  constructor(private prismaService: PrismaService) {}
-  getHello(): string {
-    return 'Hello World!';
-  }
+  constructor(
+    private prismaService: PrismaService,
+    private readonly emailService: RmqService
+  ) {}
+
   async createOffer(
-    input: CreateOfferInput
+    input: CreateOfferInput,
+    user: User
   ): Promise<typeof CreateOfferResponse> {
-    const { id, ...data } = input;
     try {
-      const offer = await this.prismaService.offer.upsert({
-        where: {
-          id: id || new ObjectId().toHexString(),
+      const offer = await this.prismaService.offers.create({
+        data: {
+          carId: input.carId,
+          userId: user.id,
+          amount: input.amount,
         },
-        update: { status: OfferStatus.PROCESSING, amount: input.amount },
-        create: {
-          carId: data.carId,
-          userId: data.userId,
-          amount: data.amount,
+        include: {
+          car: {
+            select: {
+              name: true,
+            },
+          },
         },
+      });
+
+      this.emailService.publish('OFFER', 'OFFERCREATED', {
+        email: user.email,
+        amount: input.amount,
+        car: offer.car.name,
       });
 
       return {
         offer,
       };
     } catch (error) {
-      //Will require a double call as prisma does not perform findAndUpdate...
-      if (error.code === 'P2002') {
-        const offer = await this.prismaService.offer.findFirst({
-          where: {
-            AND: {
-              carId: input.carId,
-              userId: input.userId,
-            },
-          },
-          select: {
-            id: true,
-          },
-        });
-
-        return {
-          offer: await this.prismaService.offer.update({
-            where: { id: offer.id },
-            data: { amount: input.amount },
-          }),
-        };
-      }
       return {
         error: true,
-        message: 'An error occurred!',
+        message: error.message,
       };
     }
   }
 
-  updateOffer(input: UpdateOfferInput): Promise<Offer> {
+  async updateOffer(input: UpdateOfferInput, user: User): Promise<Offer> {
     const { id, ...data } = input;
-    return this.prismaService.offer.update({
+    // Check for the right permissions
+    if (data.status) {
+      // Only admin can update this
+      if (user.role === 'BUYER') {
+        throw new UnauthorizedException('User not authorized');
+      }
+    }
+    const offer = await this.prismaService.offers.update({
       where: {
         id: input.id,
       },
       data,
+      include: {
+        car: {
+          select: { name: true },
+        },
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
     });
+
+    await this.emailService.publish('OFFER', 'OFFERUPDATED', {
+      email: offer.user.email,
+      car: offer.car.name,
+      status: offer.status,
+      amount: offer.amount,
+    });
+
+    return offer;
   }
 
   getOffers(input: Partial<Offer>): Promise<GetOffers[]> {
     const { status, ...data } = input;
-    return this.prismaService.offer.findMany({
+    return this.prismaService.offers.findMany({
       where: data,
       include: {
         car: {
           select: {
             name: true,
-            imageUrl: true,
           },
         },
       },
@@ -106,7 +117,7 @@ export class OrdersService {
 
   async createChat({ userId, carId }: CreateChatInput): Promise<Chat> {
     //check if a chat room exists and return it...
-    const existing = await this.prismaService.chat.findFirst({
+    const existing = await this.prismaService.chats.findFirst({
       where: {
         AND: {
           userId,
@@ -117,7 +128,6 @@ export class OrdersService {
         car: {
           select: {
             name: true,
-            imageUrl: true,
           },
         },
       },
@@ -127,21 +137,21 @@ export class OrdersService {
       return existing;
     }
 
-    const chat = await this.prismaService.chat.create({
+    const chat = await this.prismaService.chats.create({
       data: { userId, carId },
-      include: { car: { select: { name: true, imageUrl: true } } },
+      include: { car: { select: { name: true } } },
     });
     return chat;
   }
 
   addMessage(input: AddMessageInput): Promise<Message> {
-    return this.prismaService.message.create({
+    return this.prismaService.messages.create({
       data: input,
     });
   }
 
-  getChatsByUserId(userId: string): Promise<Chat[]> {
-    return this.prismaService.chat.findMany({
+  getChatsByUserId(userId: number): Promise<Chat[]> {
+    return this.prismaService.chats.findMany({
       where: { userId },
       include: {
         messages: {
@@ -158,45 +168,42 @@ export class OrdersService {
         car: {
           select: {
             name: true,
-            imageUrl: true,
           },
         },
       },
     });
   }
 
-  getMessages(chatId: string): Promise<Message[]> {
-    return this.prismaService.message.findMany({ where: { chatId } });
+  getMessages(chatId: number): Promise<Message[]> {
+    return this.prismaService.messages.findMany({ where: { chatId } });
   }
 
   getChatsCount(): Promise<number> {
-    return this.prismaService.chat.count();
+    return this.prismaService.chats.count();
   }
 
-  getChatById(id: string): Promise<Chat> {
-    return this.prismaService.chat.findUnique({
+  getChatById(id: number): Promise<Chat> {
+    return this.prismaService.chats.findUnique({
       where: { id },
       include: {
         car: {
           select: {
             name: true,
-            imageUrl: true,
           },
         },
       },
     });
   }
 
-  getMessagesCount(chatId: string): Promise<number> {
-    return this.prismaService.message.count({ where: { chatId } });
+  getMessagesCount(chatId: number): Promise<number> {
+    return this.prismaService.messages.count({ where: { chatId } });
   }
   async getChats(): Promise<Chat[]> {
-    return this.prismaService.chat.findMany({
+    return this.prismaService.chats.findMany({
       include: {
         car: {
           select: {
             name: true,
-            imageUrl: true,
           },
         },
         messages: {
@@ -214,16 +221,10 @@ export class OrdersService {
     });
   }
 
-  acceptAndCreateOfferToken(id: string): Promise<Offer> {
-    return this.prismaService.offer.update({
-      where: { id },
-      data: { status: OfferStatus.ACCEPTED },
-    });
-  }
-
+  // TODO: UPDATE THE ARGS
   private async validateToken(token: string): Promise<validOffer> {
-    const offer = await this.prismaService.offer.findUnique({
-      where: { id: token },
+    const offer = await this.prismaService.offers.findUnique({
+      where: {},
     });
 
     if (offer) {
@@ -247,13 +248,13 @@ export class OrdersService {
       };
     }
   }
-  private deleteToken(id: string) {
-    return this.prismaService.offer.delete({ where: { id } });
+  private deleteToken(id: number) {
+    return this.prismaService.offers.delete({ where: { id } });
   }
 
   async createOrder(input: CreateOrderInput): Promise<CreateOrderResponse> {
     const { token, ...data } = input;
-    const order = await this.prismaService.order.create({ data });
+    const order = await this.prismaService.orders.create({ data });
     //if token, validate it
     let valideOffer: validOffer;
     if (token) {
@@ -269,16 +270,16 @@ export class OrdersService {
         };
       }
       //update order
-      await this.prismaService.order.update({
-        where: { id: order.id },
-        data: {
-          offer: {
-            connect: {
-              id: token,
-            },
-          },
-        },
-      });
+      // await this.prismaService.orders.update({
+      //   where: { id: order.id },
+      //   data: {
+      //     offer: {
+      //       connect: {
+      //         id: token,
+      //       },
+      //     },
+      //   },
+      // });
       //update offer validity
 
       return {
@@ -295,9 +296,9 @@ export class OrdersService {
   }
 
   getOrders(): Promise<Order[]> {
-    return this.prismaService.order.findMany();
+    return this.prismaService.orders.findMany();
   }
-  getOrdersByUserId(userId: string): Promise<Order[]> {
-    return this.prismaService.order.findMany({ where: { userId } });
+  getOrdersByUserId(userId: number): Promise<Order[]> {
+    return this.prismaService.orders.findMany({ where: { userId } });
   }
 }

@@ -17,7 +17,7 @@ registerEnumType(UserRoles, {
 
 @ObjectType()
 export class User {
-  id: string;
+  id: number;
 
   email: string;
 
@@ -26,10 +26,9 @@ export class User {
   lastName?: string;
   @HideField()
   password?: string;
+
   @HideField()
-  accessTokenVersion?: number;
-  @HideField()
-  refreshTokenVersion?: number;
+  emailVerifyToken?: string;
 
   /**
    * Check if a user's email is verified

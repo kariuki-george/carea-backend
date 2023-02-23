@@ -1,5 +1,5 @@
-import { InputType, Int, Field } from '@nestjs/graphql';
-import { IsEmail, IsString, Min } from 'class-validator';
+import { InputType } from '@nestjs/graphql';
+import { IsEmail, IsString, IsStrongPassword, Min } from 'class-validator';
 
 @InputType()
 export class CreateUserInput {
@@ -14,6 +14,7 @@ export class CreateUserInput {
    * Users password. 8+ characters
    */
   @IsString()
-  @Min(8)
+  // @Min(8)
+  // @IsStrongPassword()
   password: string;
 }

@@ -1,10 +1,13 @@
 import { InputType } from '@nestjs/graphql';
+import { IsInt } from 'class-validator';
 
 @InputType()
 export class CreateOrderInput {
-  userId: string;
-  addressId: string;
-
-  carId: string;
+  @IsInt()
+  userId: number;
+  @IsInt()
+  addressId: number;
+  @IsInt()
+  carId: number;
   token?: string;
 }
