@@ -3,12 +3,12 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
 import * as Joi from 'joi';
 import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from './modules/auth/auth.module';
-import { CareaModule } from './modules/carea/carea.module';
-import { EmailsModule } from './providers/emails/emails.module';
-import { OrdersModule } from './modules/orders/orders.module';
+import { UsersModule } from './modules/users/users.module';
+// import { CareaModule } from './modules/carea/carea.module';
+// import { EmailsModule } from './providers/emails/emails.module';
+// import { OrdersModule } from './modules/orders/orders.module';
 import { PrismaModule } from 'src/providers/database/prisma.module';
-import { StatisticsModule } from './modules/statistics/statistics.module';
+// import { StatisticsModule } from './modules/statistics/statistics.module';
 import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
 
 @Global()
@@ -21,8 +21,6 @@ import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
         origin: [
           'http://localhost:3000',
           'http://localhost:3100',
-          '/.vercel.app$/',
-          'https://ssl.kariukigeorge.me/graphql',
           'https://studio.apollographql.com',
         ],
       },
@@ -35,17 +33,16 @@ import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
     }),
     ConfigModule.forRoot({
       isGlobal: true,
-
       validationSchema: Joi.object({}),
     }),
     CacheModule.register({ isGlobal: true }),
-    AuthModule,
-    CareaModule,
-    EmailsModule,
-    OrdersModule,
     PrismaModule.forRoot(),
+    UsersModule,
+    // CareaModule,
+    // EmailsModule,
+    // OrdersModule,
 
-    StatisticsModule,
+    // StatisticsModule,
   ],
   providers: [],
 })
