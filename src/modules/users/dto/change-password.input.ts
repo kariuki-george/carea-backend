@@ -1,5 +1,5 @@
 import { InputType } from '@nestjs/graphql';
-import { IsEmail, IsString } from 'class-validator';
+import { IsEmail, IsString, IsStrongPassword } from 'class-validator';
 
 /**
  * Change user password input.
@@ -21,5 +21,6 @@ export class ChangePasswordDto {
    */
 
   @IsString()
+  @IsStrongPassword({ minLength: 8 })
   password: string;
 }

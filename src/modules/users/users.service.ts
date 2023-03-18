@@ -8,7 +8,7 @@ import {
 import { CreateUserInput } from './dto/create-user.input';
 import * as argon2 from 'argon2';
 import { AuthenticationError, UserInputError } from 'apollo-server-express';
-import { User, UserRoles } from './entities/user.entity';
+import { User } from './entities/user.entity';
 import * as Chance from 'chance';
 import { Cache } from 'cache-manager';
 import { VerifyEmailResponse } from './res/verifyEmail.res';
@@ -18,7 +18,6 @@ import { CreateAddressDto } from './dto/create-address.input';
 import { ChangePasswordDto } from './dto/change-password.input';
 import { VerifyEmailDto } from './dto/verify-email.input';
 import { UpdateUserInput } from './dto/update-user.input';
-import { UpdateRoleResponse } from './res/updateRole.res';
 
 import { Address } from './entities/address.entity';
 import { PrismaService } from 'src/providers/database/prisma.service';
@@ -32,6 +31,10 @@ export class UsersService {
   ) {}
 
   /**
+   * Users
+   */
+
+  /**
    * Finds user, updates tokens
    * @param email
    * @param password
@@ -39,11 +42,14 @@ export class UsersService {
    */
   async validateUser(email: string, pass: string): Promise<User> {
     // TODO: update tokens
-    const user = await this.getUser({ email });
 
+    const user = await this.prismaService.users.findUnique({
+      where: { email },
+    });
     if (!user) {
-      throw new UserInputError('User not found');
+      throw new NotFoundException('User not found');
     }
+
     if (!user.verified) {
       throw new AuthenticationError('Your email is not verified!');
     }
@@ -57,10 +63,11 @@ export class UsersService {
     return user;
   }
 
-  async getUser(getUserArgs: Partial<User>): Promise<User> {
-    const { email, id } = getUserArgs;
+  async getUser(email: string): Promise<User> {
     // Check in cache
-    let user: User = await this.cacheService.get('user-' + id);
+
+    let user: User;
+    user = await this.cacheService.get('user-' + email);
     if (user) {
       return user;
     }
@@ -68,7 +75,6 @@ export class UsersService {
     user = await this.prismaService.users.findUnique({
       where: {
         email,
-        id,
       },
     });
 
@@ -76,7 +82,9 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    await this.cacheService.set('user-' + user.id, user);
+    delete user.password;
+
+    await this.cacheService.set('user-' + user.email, user);
 
     return user;
   }
@@ -98,7 +106,7 @@ export class UsersService {
       });
     } catch (error) {
       if (error.code === 'P2002') {
-        throw new BadRequestException("'Email already in use'");
+        throw new BadRequestException('Email already in use');
       }
 
       throw new Error(error.message || error.response.message);
@@ -123,6 +131,12 @@ export class UsersService {
     }
   }
 
+  async deleteUser(userId: number): Promise<boolean> {
+    // Can be improved to delete other user data asynchronously
+    await this.prismaService.users.delete({ where: { id: userId } });
+    return true;
+  }
+
   private async sendEmail(pattern: string, data: object) {
     console.log(pattern, data);
     // this.emailService.publish('EMAIL', pattern, data);
@@ -137,12 +151,9 @@ export class UsersService {
     const user = await this.prismaService.users.findUnique({
       where: { email },
     });
-    if (!user) {
-      throw new NotFoundException("This user doesn't exist");
-    }
 
     if (user.emailVerifyToken != token) {
-      throw new BadRequestException('Invalid Token');
+      throw new BadRequestException('Invalid Token or Token already used');
     }
 
     await this.prismaService.users.update({
@@ -170,10 +181,7 @@ export class UsersService {
 
   async resendVerifyEmail(email: string): Promise<VerifyEmailResponse> {
     // Verify user exists
-    const user = await this.getUser({ email });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    const user = await this.getUser(email);
 
     await this.sendVerifyEmail(email, user.emailVerifyToken);
     return { success: true };
@@ -181,11 +189,7 @@ export class UsersService {
 
   async changePasswordRequest(email: string): Promise<string> {
     // Validate email
-    const user = await this.getUser({ email });
-
-    if (!user) {
-      throw new BadRequestException('User not found');
-    }
+    const user = await this.getUser(email);
 
     const token = this.createToken();
     // Save this token
@@ -225,6 +229,7 @@ export class UsersService {
       where: { email },
       data: {
         password: await argon2.hash(password),
+        passwordChangeToken: null,
       },
     });
 
@@ -232,6 +237,10 @@ export class UsersService {
       success: true,
     };
   }
+  /**
+   *
+   * User addresses and profile
+   */
 
   createAddress(
     { name, details }: CreateAddressDto,
@@ -253,32 +262,12 @@ export class UsersService {
     });
   }
 
-  async updateRole(userId: number, admin: User): Promise<UpdateRoleResponse> {
-    /**
-     * Needs auth from admin. Check if user is admin.
-     */
-
-    // if (admin.role !== UserRoles.ADMIN) {
-    //   return {
-    //     error: true,
-    //     message: "Only super Admin can update a user's roles",
-    //   };
-    // }
-
-    console.log(admin);
-
-    await this.prismaService.users.update({
-      where: { id: userId },
-      data: {
-        role: UserRoles.SUBADMIN,
-      },
-    });
-    return {
-      success: true,
-    };
-  }
-
   getAddressesByUserId(userId: number): Promise<Address[]> {
     return this.prismaService.addresses.findMany({ where: { userId } });
+  }
+
+  async deleteAddress(addressId: number): Promise<boolean> {
+    await this.prismaService.addresses.delete({ where: { id: addressId } });
+    return true;
   }
 }

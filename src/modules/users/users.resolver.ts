@@ -9,9 +9,7 @@ import { ChangePasswordDto } from './dto/change-password.input';
 import { ChangePasswordRequestResponse } from './res/changePasswordRequest.res';
 import { CreateAddressDto } from './dto/create-address.input';
 import { VerifyEmailDto } from './dto/verify-email.input';
-import { UpdateRoleResponse } from './res/updateRole.res';
 import { Address } from './entities/address.entity';
-import { SearchUserInput } from './dto/searchUser.dto';
 //  import { UseGuards } from '@nestjs/common';
 // import { JwtAuthGuard } from '../guards/jwt.guard';
 // import { AdminGuard } from '../guards/admin.guard';
@@ -102,18 +100,6 @@ export class UsersResolver {
     return 'boop!';
   }
 
-  /**
-   * Update user role from Buyer to Subadmin
-   */
-
-  @Mutation(() => UpdateRoleResponse)
-  updateRole(
-    @Args('userId') userId: number,
-    @Context() context
-  ): Promise<UpdateRoleResponse> {
-    return this.usersService.updateRole(userId, context.user);
-  }
-
   // @UseGuards(JwtAuthGuard)
   @Query(() => [Address])
   getAddresses(@Context() ctx) {
@@ -121,7 +107,12 @@ export class UsersResolver {
   }
 
   @Query(() => User)
-  getUserByEmailOrId(@Args('input') input: SearchUserInput): Promise<User> {
-    return this.usersService.getUser(input);
+  getUser(@Context() ctx): Promise<User> {
+    return this.usersService.getUser("{ email: 'sss' }");
+  }
+
+  @Mutation(() => Boolean)
+  deleteAddress(@Args('AddressId') addressId: number): Promise<boolean> {
+    return this.usersService.deleteAddress(addressId);
   }
 }

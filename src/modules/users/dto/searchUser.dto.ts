@@ -1,9 +1,12 @@
 import { InputType } from '@nestjs/graphql';
-import { IsInt } from 'class-validator';
+import { IsEmail, IsInt, IsOptional } from 'class-validator';
 
 @InputType()
 export class SearchUserInput {
+  @IsEmail()
+  @IsOptional()
   email?: string;
   @IsInt()
+  @IsOptional()
   id?: number;
 }
