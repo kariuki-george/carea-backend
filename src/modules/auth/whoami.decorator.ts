@@ -1,7 +1,6 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { Context, GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
-import { GraphQLType } from 'graphql';
-import { User } from './users/entities/user.entity';
+import { GqlContextType } from '@nestjs/graphql';
+import { User } from '../users/entities/user.entity';
 
 export const getCurrentUserByContext = (context: ExecutionContext): User => {
   if (context.getType<GqlContextType>() === 'graphql') {

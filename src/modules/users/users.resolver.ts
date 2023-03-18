@@ -10,15 +10,15 @@ import { ChangePasswordRequestResponse } from './res/changePasswordRequest.res';
 import { CreateAddressDto } from './dto/create-address.input';
 import { VerifyEmailDto } from './dto/verify-email.input';
 import { Address } from './entities/address.entity';
-//  import { UseGuards } from '@nestjs/common';
-// import { JwtAuthGuard } from '../guards/jwt.guard';
-// import { AdminGuard } from '../guards/admin.guard';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 
 @Resolver(() => User)
 export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
 
-  // @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Query(() => [User])
   getAllUsers(): Promise<User[]> {
     return this.usersService.findAll();
@@ -63,7 +63,7 @@ export class UsersResolver {
   /**
    *Create an address for the user. A user can create multiple addresses sequentially.
    */
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Mutation(() => Address)
   createAddress(
     @Args('createAddress') createAddress: CreateAddressDto,
@@ -75,7 +75,7 @@ export class UsersResolver {
   /**
    * Update user profile
    */
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Mutation(() => User)
   updateProfile(
     @Args('profile') profile: UpdateUserInput,
@@ -100,17 +100,19 @@ export class UsersResolver {
     return 'boop!';
   }
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Query(() => [Address])
   getAddresses(@Context() ctx) {
     return this.usersService.getAddressesByUserId(ctx.req.user.id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Query(() => User)
   getUser(@Context() ctx): Promise<User> {
-    return this.usersService.getUser("{ email: 'sss' }");
+    return this.usersService.getUserByEmail(ctx.req.user.email);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Mutation(() => Boolean)
   deleteAddress(@Args('AddressId') addressId: number): Promise<boolean> {
     return this.usersService.deleteAddress(addressId);

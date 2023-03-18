@@ -7,13 +7,11 @@ import {
 } from '@nestjs/common';
 import { CreateUserInput } from './dto/create-user.input';
 import * as argon2 from 'argon2';
-import { AuthenticationError, UserInputError } from 'apollo-server-express';
 import { User } from './entities/user.entity';
 import * as Chance from 'chance';
 import { Cache } from 'cache-manager';
 import { VerifyEmailResponse } from './res/verifyEmail.res';
 import { ChangePasswordRequestResponse } from './res/changePasswordRequest.res';
-
 import { CreateAddressDto } from './dto/create-address.input';
 import { ChangePasswordDto } from './dto/change-password.input';
 import { VerifyEmailDto } from './dto/verify-email.input';
@@ -51,19 +49,19 @@ export class UsersService {
     }
 
     if (!user.verified) {
-      throw new AuthenticationError('Your email is not verified!');
+      throw new BadRequestException('Your email is not verified!');
     }
 
     const passwordIsValid = await argon2.verify(user.password, pass);
     if (!passwordIsValid) {
-      throw new UserInputError('Credentials are not valid');
+      throw new BadRequestException('Credentials are not valid');
     }
 
     // TODO: Remove password
     return user;
   }
 
-  async getUser(email: string): Promise<User> {
+  async getUserByEmail(email: string): Promise<User> {
     // Check in cache
 
     let user: User;
@@ -85,6 +83,32 @@ export class UsersService {
     delete user.password;
 
     await this.cacheService.set('user-' + user.email, user);
+
+    return user;
+  }
+
+  async getUserById(id: number): Promise<User> {
+    // Check in cache
+
+    let user: User;
+    user = await this.cacheService.get('user-' + id);
+    if (user) {
+      return user;
+    }
+
+    user = await this.prismaService.users.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    delete user.password;
+
+    await this.cacheService.set('user-' + user.id, user);
 
     return user;
   }
@@ -181,7 +205,7 @@ export class UsersService {
 
   async resendVerifyEmail(email: string): Promise<VerifyEmailResponse> {
     // Verify user exists
-    const user = await this.getUser(email);
+    const user = await this.getUserByEmail(email);
 
     await this.sendVerifyEmail(email, user.emailVerifyToken);
     return { success: true };
@@ -189,7 +213,7 @@ export class UsersService {
 
   async changePasswordRequest(email: string): Promise<string> {
     // Validate email
-    const user = await this.getUser(email);
+    const user = await this.getUserByEmail(email);
 
     const token = this.createToken();
     // Save this token

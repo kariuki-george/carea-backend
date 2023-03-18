@@ -4,7 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { AuthenticationError } from 'apollo-server-express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { TokenPayload } from '../auth.service';
-import { UsersService } from '../users/users.service';
+import { UsersService } from '../../users/users.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -21,12 +21,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate({ userId }: TokenPayload) {
     try {
-      const user = await this.usersService.getUser({
-        id: userId,
-      });
-      const { password, ...formattedUser } = user;
+      const user = await this.usersService.getUserById(userId);
 
-      return formattedUser;
+      return user;
     } catch (error) {
       throw new AuthenticationError('Not authenticated');
     }

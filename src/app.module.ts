@@ -10,6 +10,7 @@ import { UsersModule } from './modules/users/users.module';
 import { PrismaModule } from 'src/providers/database/prisma.module';
 // import { StatisticsModule } from './modules/statistics/statistics.module';
 import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Global()
 @Module({
@@ -38,6 +39,7 @@ import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
     CacheModule.register({ isGlobal: true }),
     PrismaModule.forRoot(),
     UsersModule,
+    AuthModule,
     // CareaModule,
     // EmailsModule,
     // OrdersModule,
