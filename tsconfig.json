@@ -9,7 +9,7 @@
     "target": "es2017",
     "sourceMap": true,
     "outDir": "./dist",
-  
+
     "baseUrl": ".",
     "incremental": true,
     "skipLibCheck": true,
@@ -19,13 +19,9 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@providers": [
-        "src/providers"
-      ], "@modules": [
-        "src/modules"
-      ],
-    }    
+      "@/*": ["./src/*"]
+    }
   },
-  "exclude":["refactor"],
+  "exclude": ["refactor"],
   "include": ["src/**/*"]
 }

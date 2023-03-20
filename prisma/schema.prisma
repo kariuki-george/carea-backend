@@ -96,6 +96,7 @@ model cars {
   category    categories @relation(fields: [categoryId], references: [id])
   categoryId   Int  
   reviews      reviews[]
+  createdAt DateTime @unique @default(now())
   
   chats chats[]
   offer offers[]

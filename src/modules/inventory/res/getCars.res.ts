@@ -3,8 +3,11 @@ import { Car } from '../entities/car.entity';
 
 @ObjectType()
 export class GetCarsResponse {
-  @Field(() => Int || Boolean)
-  nextPage: number | boolean;
+  @Field(() => Int, {
+    description:
+      'Returns zero if no next page. Else returns index for the next page',
+  })
+  nextPage: number;
   @Field(() => [Car])
   cars: Car[];
 }
