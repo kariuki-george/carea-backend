@@ -57,6 +57,8 @@ export class UsersService {
       throw new BadRequestException('Credentials are not valid');
     }
 
+    delete user.password
+
     // TODO: Remove password
     return user;
   }
@@ -122,12 +124,16 @@ export class UsersService {
     let user: User;
 
     try {
+      const token = this.createToken();
       user = await this.prismaService.users.create({
         data: {
           email: input.email,
           password: await argon2.hash(input.password),
+          emailVerifyToken:token
         },
       });
+      await this.sendVerifyEmail(user.email, token);
+      return user;
     } catch (error) {
       if (error.code === 'P2002') {
         throw new BadRequestException('Email already in use');
@@ -136,23 +142,6 @@ export class UsersService {
       throw new Error(error.message || error.response.message);
     }
 
-    /**
-     * send verify email
-     */
-
-    // create a token
-    try {
-      const token = this.createToken();
-      await this.prismaService.users.update({
-        where: { id: user.id },
-        data: { emailVerifyToken: token },
-      });
-      await this.sendVerifyEmail(user.email, token);
-
-      return user;
-    } catch (error) {
-      // TODO: handle errors
-    }
   }
 
   async deleteUser(userId: number): Promise<boolean> {
