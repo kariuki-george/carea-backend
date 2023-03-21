@@ -1,17 +1,16 @@
 import { Module, CacheModule, Global } from '@nestjs/common';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
-import * as Joi from 'joi';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './modules/users/users.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
-// import { EmailsModule } from './providers/emails/emails.module';
+import { EmailsModule } from '@/providers/emails/emails.module';
 // import { OrdersModule } from './modules/orders/orders.module';
 import { PrismaModule } from 'src/providers/database/prisma.module';
-// import { StatisticsModule } from './modules/statistics/statistics.module';
 import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
 import { AuthModule } from './modules/auth/auth.module';
 import { redisStore } from 'cache-manager-redis-yet';
+import { KafkaModule } from './providers/kafka/kafka.module';
 
 @Global()
 @Module({
@@ -31,14 +30,14 @@ import { redisStore } from 'cache-manager-redis-yet';
     }),
     ConfigModule.forRoot({
       isGlobal: true,
-      validationSchema: Joi.object({}),
+      // validationSchema: Joi.object({}),
     }),
     CacheModule.registerAsync({
       isGlobal: true,
       useFactory: async () => ({
         store: await redisStore({
           ttl: 1000 * 60 * 3,
-          url: 'redis://localhost:6379',
+          url: 'redis://redis:6379',
         }),
       }),
     }),
@@ -46,7 +45,8 @@ import { redisStore } from 'cache-manager-redis-yet';
     UsersModule,
     AuthModule,
     InventoryModule,
-    // EmailsModule,
+    KafkaModule,
+    EmailsModule,
     // OrdersModule,
 
     // StatisticsModule,

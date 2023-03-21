@@ -19,13 +19,15 @@ import { UpdateUserInput } from './dto/update-user.input';
 
 import { Address } from './entities/address.entity';
 import { PrismaService } from 'src/providers/database/prisma.service';
+import { ProducerService } from '@/providers/kafka/producer/producer.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly prismaService: PrismaService,
 
-    @Inject(CACHE_MANAGER) private cacheService: Cache
+    @Inject(CACHE_MANAGER) private cacheService: Cache,
+    private readonly producerService: ProducerService
   ) {}
 
   /**
@@ -57,7 +59,7 @@ export class UsersService {
       throw new BadRequestException('Credentials are not valid');
     }
 
-    delete user.password
+    delete user.password;
 
     // TODO: Remove password
     return user;
@@ -129,10 +131,24 @@ export class UsersService {
         data: {
           email: input.email,
           password: await argon2.hash(input.password),
-          emailVerifyToken:token
+          emailVerifyToken: token,
         },
       });
-      await this.sendVerifyEmail(user.email, token);
+
+      // Create User Event
+      await this.producerService.produce({
+        topic: 'users.create',
+        messages: [
+          {
+            value: JSON.stringify({
+              email: user.email,
+              userId: user.id,
+              token,
+            }),
+            key: user.id.toString(),
+          },
+        ],
+      });
       return user;
     } catch (error) {
       if (error.code === 'P2002') {
@@ -141,19 +157,12 @@ export class UsersService {
 
       throw new Error(error.message || error.response.message);
     }
-
   }
 
   async deleteUser(userId: number): Promise<boolean> {
     // Can be improved to delete other user data asynchronously
     await this.prismaService.users.delete({ where: { id: userId } });
     return true;
-  }
-
-  private async sendEmail(pattern: string, data: object) {
-    console.log(pattern, data);
-    // this.emailService.publish('EMAIL', pattern, data);
-    //await lastValueFrom(this.emailClient.emit(pattern, data));
   }
 
   async verifyEmail({
@@ -178,14 +187,6 @@ export class UsersService {
     };
   }
 
-  private async sendVerifyEmail(email: string, token: string) {
-    await this.sendEmail('user_verifyEmail', {
-      email: email,
-      token,
-      name: email.split('@')[0],
-    });
-  }
-
   private createToken() {
     const chance = new Chance();
     const token = chance.hash();
@@ -196,7 +197,21 @@ export class UsersService {
     // Verify user exists
     const user = await this.getUserByEmail(email);
 
-    await this.sendVerifyEmail(email, user.emailVerifyToken);
+    await this.producerService.produce({
+      topic: 'users.verifyEmail',
+      messages: [
+        {
+          value: JSON.stringify({
+            email: user.email,
+            userId: user.id,
+            token: user.emailVerifyToken,
+            firstName: email.split('@')[0],
+          }),
+          key: user.id.toString(),
+        },
+      ],
+    });
+
     return { success: true };
   }
 
@@ -212,7 +227,20 @@ export class UsersService {
     });
 
     await this.cacheService.del('user-' + user.id);
-    await this.sendEmail('user_passwordReset', { email, token });
+    await this.producerService.produce({
+      topic: 'users.passwordReset',
+      messages: [
+        {
+          value: JSON.stringify({
+            email: user.email,
+            userId: user.id,
+            token,
+            firstName: user.firstName || email.split('@')[0],
+          }),
+          key: user.id.toString(),
+        },
+      ],
+    });
     return 'Check your email!';
   }
 

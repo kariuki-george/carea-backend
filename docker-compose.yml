@@ -1,62 +1,57 @@
 version: '3.8'
 
 services:
-    dev:
-        container_name: carea-backend
-        image: carea-backend
-        build:
-            context: .
-            target: deps
-            dockerfile: ./Dockerfile
-        command: yarn run start:dev 
-        env_file:
-          - .env
+  dev:
+    container_name: carea-backend
+    image: carea-backend
+    build:
+      context: .
+      target: deps
+      dockerfile: ./Dockerfile
+    command: yarn run start:dev
+    env_file:
+      - .env
 
-        ports:
-            - 3000:3000
-           
-        networks:
-            - nginx
-            - pg
-            - rabbitmq
-        volumes:
-            - .:/usr/src/app
-            - /usr/src/app/node_modules
-        restart: unless-stopped
-       
-    # prod:
-    #     container_name: nestjs_api_prod
-    #     image: nestjs-api-prod:1.0.0
-    #     build:
-    #         context: .
-    #         target: production
-    #         dockerfile: ./Dockerfile
-    #     command: yarn run start:prod
-    #     ports:
-    #         - 3000:3000
-    #         - 9229:9229
-    #     networks:
-    #         - carea-backend
-          
-    #     volumes:
-    #         - .:/usr/src/app
-    #         - /usr/src/app/node_modules
-    #     restart: unless-stopped
+    ports:
+      - 4000:4000
 
+    networks:
+      - pg-dev
+      - rabbitmq
+      - kafka
+      - redis
 
-   
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    restart: unless-stopped
 
+  # prod:
+  #     container_name: nestjs_api_prod
+  #     image: nestjs-api-prod:1.0.0
+  #     build:
+  #         context: .
+  #         target: production
+  #         dockerfile: ./Dockerfile
+  #     command: yarn run start:prod
+  #     ports:
+  #         - 3000:3000
+  #         - 9229:9229
+  #     networks:
+  #         - carea-backend
+
+  #     volumes:
+  #         - .:/usr/src/app
+  #         - /usr/src/app/node_modules
+  #     restart: unless-stopped
 
 networks:
-    nginx:
-      external:
-        name: nginx
-    pg:
-      external:
-        name: pg
-    rabbitmq:
-      external:
-        name: rabbitmq
+  pg-dev:
+    external: true
+  rabbitmq:
+    external: true
 
-
-
+  kafka:
+    external: true
+  redis:
+    external: true
