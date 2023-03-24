@@ -22,10 +22,8 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "-": "^0.0.1",
     "@commitlint/cli": "^17.3.0",
     "@commitlint/config-conventional": "^17.3.0",
-    "@golevelup/nestjs-rabbitmq": "^3.4.0",
     "@nestjs-modules/mailer": "^1.8.1",
     "@nestjs/apollo": "^10.1.7",
     "@nestjs/common": "^9.2.1",
@@ -38,7 +36,6 @@
     "@nestjs/platform-express": "^9.2.1",
     "@prisma/client": "^4.11.0",
     "@types/passport-local": "^1.0.34",
-    "D": "^1.0.0",
     "amqp-connection-manager": "^4.1.9",
     "amqplib": "^0.10.3",
     "apollo-server-core": "^3.11.1",
@@ -56,9 +53,7 @@
     "handlebars": "^4.7.7",
     "joi": "^17.7.0",
     "jwks-rsa": "^3.0.0",
-    "kafkajs": "^2.2.4",
     "moment": "^2.29.4",
-    "ngrok": "^4.3.3",
     "nodemailer": "^6.8.0",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
