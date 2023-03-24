@@ -1,16 +1,16 @@
 import { Module, CacheModule, Global } from '@nestjs/common';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
-import * as Joi from 'joi';
 import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from './auth/auth.module';
-import { CareaModule } from './carea/carea.module';
-import { EmailsModule } from './emails/emails.module';
-import { OrdersModule } from './orders/orders.module';
-import { PrismaModule } from 'libs/database/prisma.module';
-import { RmqModule } from 'libs/rmq/rmq.module';
-import { StatisticsModule } from './statistics/statistics.module';
+import { UsersModule } from './modules/users/users.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
+import { EmailsModule } from '@/providers/emails/emails.module';
+// import { OrdersModule } from './modules/orders/orders.module';
+import { PrismaModule } from 'src/providers/database/prisma.module';
 import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
+import { AuthModule } from './modules/auth/auth.module';
+import { redisStore } from 'cache-manager-redis-yet';
+import { KafkaModule } from './providers/kafka/kafka.module';
 
 @Global()
 @Module({
@@ -19,13 +19,7 @@ import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
       driver: ApolloDriver,
       cors: {
         credentials: true,
-        origin: [
-          'http://localhost:3000',
-          'http://localhost:3100',
-          '/.vercel.app$/',
-          'https://ssl.kariukigeorge.me/graphql',
-          'https://studio.apollographql.com',
-        ],
+        origin: ['https://studio.apollographql.com'],
       },
       autoSchemaFile: true,
       context: ({ req, res }) => ({ req, res }),
@@ -36,17 +30,26 @@ import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
     }),
     ConfigModule.forRoot({
       isGlobal: true,
-
-      validationSchema: Joi.object({}),
+      // validationSchema: Joi.object({}),
     }),
-    CacheModule.register({ isGlobal: true }),
-    AuthModule,
-    CareaModule,
-    EmailsModule,
-    OrdersModule,
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: async () => ({
+        store: await redisStore({
+          ttl: 1000 * 60 * 3,
+          url: 'redis://redis:6379',
+        }),
+      }),
+    }),
     PrismaModule.forRoot(),
-    RmqModule,
-    StatisticsModule,
+    UsersModule,
+    AuthModule,
+    InventoryModule,
+    KafkaModule,
+    EmailsModule,
+    // OrdersModule,
+
+    // StatisticsModule,
   ],
   providers: [],
 })

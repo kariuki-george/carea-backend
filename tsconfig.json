@@ -9,7 +9,8 @@
     "target": "es2017",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
+
+    "baseUrl": ".",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
@@ -18,18 +19,9 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@carea/common": [
-        "libs/common/src"
-      ],
-      "@carea/common/*": [
-        "libs/common/src/*"
-      ],
-      "@prisma/prisma": [
-        "libs/prisma/src"
-      ],
-      "@prisma/prisma/*": [
-        "libs/prisma/src/*"
-      ]
+      "@/*": ["./src/*"]
     }
-  }
+  },
+  "exclude": ["refactor"],
+  "include": ["src/**/*"]
 }
