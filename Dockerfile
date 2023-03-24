@@ -19,7 +19,7 @@ COPY . .
 
 RUN yarn build
 
-FROM --platform=linux/amd64 node:fermium-alpine3.16 AS production
+FROM  node:16-alpine AS prod
 
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
@@ -32,6 +32,6 @@ RUN  yarn  --only=production
 
 COPY . .
 
-COPY --from=development /usr/src/app/dist ./dist
+COPY --from=deps /usr/src/app/dist ./dist
 
 CMD ["node", "dist/main"]
