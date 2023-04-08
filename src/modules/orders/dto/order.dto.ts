@@ -9,5 +9,12 @@ export class CreateOrderInput {
   addressId: number;
   @IsInt()
   carId: number;
-  token?: string;
+}
+
+@InputType()
+export class DeleteOrderInput {
+  @IsInt()
+  userId: number;
+  @IsInt()
+  orderId: number;
 }

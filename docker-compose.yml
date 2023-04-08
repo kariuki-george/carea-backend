@@ -3,7 +3,6 @@ version: '3.8'
 services:
   dev:
     container_name: carea-backend
-    image: carea-backend
     build:
       context: .
       target: deps
@@ -26,24 +25,33 @@ services:
       - /usr/src/app/node_modules
     restart: unless-stopped
 
-  # prod:
-  #     container_name: nestjs_api_prod
-  #     image: nestjs-api-prod:1.0.0
-  #     build:
-  #         context: .
-  #         target: production
-  #         dockerfile: ./Dockerfile
-  #     command: yarn run start:prod
-  #     ports:
-  #         - 3000:3000
-  #         - 9229:9229
-  #     networks:
-  #         - carea-backend
+  prod:
+    container_name: carea-backend-prod
+    build:
+      context: .
+      target: prod
+      dockerfile: ./Dockerfile
+    env_file:
+      - .env
 
-  #     volumes:
-  #         - .:/usr/src/app
-  #         - /usr/src/app/node_modules
-  #     restart: unless-stopped
+    networks:
+      - pg-dev
+      - rabbitmq
+      - kafka
+      - traefik
+      - redis
+
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      ## HTTP Routers
+      - traefik.http.routers.carea-api.entrypoints=websecure
+      - traefik.http.routers.carea-api.rule=Host(`carea-api.p.kariukigeorge.me`)
+      - traefik.http.routers.carea-api.tls.certresolver=lets-encrypt
+      - traefik.http.services.carea-api.loadbalancer.server.port=3000
 
 networks:
   pg-dev:
@@ -54,4 +62,6 @@ networks:
   kafka:
     external: true
   redis:
+    external: true
+  traefik:
     external: true

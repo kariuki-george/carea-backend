@@ -1,16 +1,21 @@
-import { Module, CacheModule, Global } from '@nestjs/common';
+import {
+  Module,
+  CacheModule,
+  Global,
+  MiddlewareConsumer,
+} from '@nestjs/common';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './modules/users/users.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { EmailsModule } from '@/providers/emails/emails.module';
-// import { OrdersModule } from './modules/orders/orders.module';
+import { OrdersModule } from '@/modules/orders/orders.module';
 import { PrismaModule } from 'src/providers/database/prisma.module';
 import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
 import { AuthModule } from './modules/auth/auth.module';
-import { redisStore } from 'cache-manager-redis-yet';
 import { KafkaModule } from './providers/kafka/kafka.module';
+import { RequestLoggerMiddleware } from './middlewares/request-logegr.middleware';
 
 @Global()
 @Module({
@@ -32,25 +37,23 @@ import { KafkaModule } from './providers/kafka/kafka.module';
       isGlobal: true,
       // validationSchema: Joi.object({}),
     }),
-    CacheModule.registerAsync({
+
+    CacheModule.register({
       isGlobal: true,
-      useFactory: async () => ({
-        store: await redisStore({
-          ttl: 1000 * 60 * 3,
-          url: 'redis://redis:6379',
-        }),
-      }),
     }),
+
     PrismaModule.forRoot(),
     UsersModule,
     AuthModule,
     InventoryModule,
     KafkaModule,
     EmailsModule,
-    // OrdersModule,
-
-    // StatisticsModule,
+    OrdersModule,
   ],
   providers: [],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestLoggerMiddleware).forRoutes('*');
+  }
+}

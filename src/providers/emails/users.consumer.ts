@@ -1,22 +1,35 @@
 import { ConsumerService } from '@/providers/kafka/consumer/consumer.service';
 import { Injectable, OnModuleInit } from '@nestjs/common';
+import events from '@/config/kafka.events';
+import { EmailsService } from './emails.service';
 
 @Injectable()
 export class UsersConsumer implements OnModuleInit {
-  constructor(private readonly consumer: ConsumerService) {}
+  constructor(
+    private readonly consumer: ConsumerService,
+    private readonly emailService: EmailsService
+  ) {}
   async onModuleInit() {
     await this.consumer.consume(
-      'users.create',
-      { topics: ['users.create'] },
+      'emails',
+      { topics: [events.USER.CREATE] },
       {
-        eachMessage: async ({ topic, partition, message }) => {
-          console.log({
-            source: 'users.create',
-            message: message.value.toString(),
-            partition,
-            topic,
-          });
-          console.log('From Email Service');
+        eachMessage: async ({ message }) => {
+          return this.emailService.sendUserConfirmation(
+            JSON.parse(message.value.toString()).email
+          );
+        },
+      }
+    );
+
+    await this.consumer.consume(
+      'users',
+      { topics: [events.USER.PASSWORDRESETREQUEST] },
+      {
+        eachMessage: async ({ message }) => {
+          return this.emailService.sendChangePassword(
+            JSON.parse(message.value.toString()).EMAIL
+          );
         },
       }
     );

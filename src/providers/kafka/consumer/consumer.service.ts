@@ -3,13 +3,19 @@ import {
   OnApplicationShutdown,
   OnModuleInit,
 } from '@nestjs/common';
-import { ConsumerSubscribeTopics } from '@nestjs/microservices/external/kafka.interface';
-import { Consumer, ConsumerRunConfig, Kafka } from 'kafkajs';
+import { ConfigService } from '@nestjs/config';
+import {
+  Consumer,
+  ConsumerRunConfig,
+  ConsumerSubscribeTopics,
+  Kafka,
+} from 'kafkajs';
 @Injectable()
 export class ConsumerService implements OnModuleInit, OnApplicationShutdown {
-  async onModuleInit() {
-    console.log('Hi from consumer');
-  }
+  constructor(private readonly configService: ConfigService) {}
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  async onModuleInit() {}
 
   async onApplicationShutdown() {
     for (const consumer of this.consumers) {
@@ -18,7 +24,7 @@ export class ConsumerService implements OnModuleInit, OnApplicationShutdown {
   }
 
   private readonly kafka = new Kafka({
-    brokers: ['broker:9092'],
+    brokers: [this.configService.getOrThrow('KAFKA_URI')],
   });
 
   private readonly consumers: Consumer[] = [];

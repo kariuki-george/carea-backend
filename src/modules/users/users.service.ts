@@ -16,7 +16,7 @@ import { CreateAddressDto } from './dto/create-address.input';
 import { ChangePasswordDto } from './dto/change-password.input';
 import { VerifyEmailDto } from './dto/verify-email.input';
 import { UpdateUserInput } from './dto/update-user.input';
-
+import events from '@/config/kafka.events';
 import { Address } from './entities/address.entity';
 import { PrismaService } from 'src/providers/database/prisma.service';
 import { ProducerService } from '@/providers/kafka/producer/producer.service';
@@ -137,7 +137,7 @@ export class UsersService {
 
       // Create User Event
       await this.producerService.produce({
-        topic: 'users.create',
+        topic: events.USER.CREATE,
         messages: [
           {
             value: JSON.stringify({
@@ -198,7 +198,7 @@ export class UsersService {
     const user = await this.getUserByEmail(email);
 
     await this.producerService.produce({
-      topic: 'users.verifyEmail',
+      topic: events.USER.VERIFYEMAIL,
       messages: [
         {
           value: JSON.stringify({
@@ -228,7 +228,7 @@ export class UsersService {
 
     await this.cacheService.del('user-' + user.id);
     await this.producerService.produce({
-      topic: 'users.passwordReset',
+      topic: events.USER.PASSWORDRESETREQUEST,
       messages: [
         {
           value: JSON.stringify({

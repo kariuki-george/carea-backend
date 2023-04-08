@@ -1,12 +1,8 @@
 import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 enum OrderStatus {
-  PROCESSING = 'PROCESSING',
-  DELIVERY = 'DELIVERY',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
-  REFUND = 'REFUND',
   UNPAID = 'UNPAID',
+  PAID = 'PAID',
 }
 
 registerEnumType(OrderStatus, { name: 'OrderStatus' });
