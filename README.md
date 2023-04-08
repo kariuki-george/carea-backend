@@ -8,8 +8,6 @@ Carea-Backend is the backend for a car-selling platform.
 2. User Roles
 3. Inventory Management
 4. Order Management
-5. Chat
-6. One time Payments
 
 ## Architecture
 
@@ -32,12 +30,11 @@ The project uses the following technologies:
 
    1. The type-safety, declarative schema file, and good migration support made prisma the perfect choice the Orm.
 
-4. Rabbitmq
+4. Kafka
 
-   1. Rabbitmq is used to offer asynchronous processing of events as well as background processing of tasks such as sending emails.
-   2. Rabbitmq is used specifically as it’s easy to work with.
+   1. Kafka is used to offer asynchronous processing of events as well as background processing of tasks such as sending emails.
 
-5. Redis
+5. Redis\*
 
    1. Redis is used as a cache to complement the database’s performance.
 
@@ -48,8 +45,6 @@ The project uses the following technologies:
 7. Graphql
 
    1. Preferred over rest because of the good dev experience, type-safety.
-
-![](https://res.cloudinary.com/smiley-geek/image/upload/v1679661182/bw79tcanj3eo8phtgpdo.png)
 
 ## Installation
 
@@ -80,3 +75,9 @@ Go to http://localhost:<port>/graphql
 
 - Contains winston logs under logs folder
 - Contains all logs and logs specific to errors
+
+## Kafka
+
+- Used for async processing of background tasks
+- Can be used for further streaming purposes
+- Can be integrated with a schema registry to achieve a typed experienced for the consumers.

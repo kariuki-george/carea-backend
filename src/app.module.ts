@@ -37,9 +37,11 @@ import { RequestLoggerMiddleware } from './middlewares/request-logegr.middleware
       isGlobal: true,
       // validationSchema: Joi.object({}),
     }),
+
     CacheModule.register({
       isGlobal: true,
     }),
+
     PrismaModule.forRoot(),
     UsersModule,
     AuthModule,
