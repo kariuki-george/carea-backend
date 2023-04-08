@@ -110,7 +110,7 @@ model orders {
    id      Int      @id @default(autoincrement())
    userId   Int
    addressId    Int
-   status     OrderStatus @default(PROCESSING)
+   status     OrderStatus @default(UNPAID)
    carId  Int
 
 }

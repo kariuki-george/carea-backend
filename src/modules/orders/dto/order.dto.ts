@@ -10,3 +10,11 @@ export class CreateOrderInput {
   @IsInt()
   carId: number;
 }
+
+@InputType()
+export class DeleteOrderInput {
+  @IsInt()
+  userId: number;
+  @IsInt()
+  orderId: number;
+}

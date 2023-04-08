@@ -76,4 +76,7 @@ docker-compose up -d
 Go to http://localhost:<port>/graphql
 ```
 
-\
+## Logs
+
+- Contains winston logs under logs folder
+- Contains all logs and logs specific to errors

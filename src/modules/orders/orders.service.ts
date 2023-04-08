@@ -1,22 +1,36 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/providers/database/prisma.service';
-import { CreateOrderInput } from './dto/createOrder.dto';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { CreateOrderInput } from './dto/order.dto';
 import { Order } from './entities/Order.entity';
+import { OrdersRepo } from './orders.repo';
+import { InventoryService } from '../inventory/inventory.service';
+import { CAR_OUT_OF_STOCK } from '@/errors/orders';
 
 @Injectable()
 export class OrdersService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private ordersRepo: OrdersRepo,
+    private readonly inventoryService: InventoryService
+  ) {}
 
   async createOrder(data: CreateOrderInput): Promise<Order> {
-    const order = await this.prismaService.orders.create({ data });
+    // Make sure the car is in stock
+    const car = await this.inventoryService.getCarById(data.carId);
 
+    if (car.stock === 0) {
+      throw new BadRequestException(CAR_OUT_OF_STOCK);
+    }
+
+    const order = await this.ordersRepo.createOrder(data);
     return order;
   }
 
   getOrders(): Promise<Order[]> {
-    return this.prismaService.orders.findMany();
+    return this.ordersRepo.getOrders();
   }
   getOrdersByUserId(userId: number): Promise<Order[]> {
-    return this.prismaService.orders.findMany({ where: { userId } });
+    return this.ordersRepo.getOrdersByUserId(userId);
+  }
+  deleteOrder(orderId: number, userId: number): Promise<boolean> {
+    return this.ordersRepo.deleteOrder(orderId, userId);
   }
 }

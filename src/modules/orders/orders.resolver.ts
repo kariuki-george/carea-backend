@@ -1,5 +1,5 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { CreateOrderInput } from './dto/createOrder.dto';
+import { CreateOrderInput, DeleteOrderInput } from './dto/order.dto';
 import { Order } from './entities/Order.entity';
 import { OrdersService } from './orders.service';
 
@@ -12,6 +12,12 @@ export class OrdersResolver {
   })
   createOrder(@Args('createOrder') input: CreateOrderInput): Promise<Order> {
     return this.ordersService.createOrder(input);
+  }
+  @Mutation(() => Boolean, {
+    description: 'Takes in userId and orderId',
+  })
+  deleteOrder(@Args('deleteOrder') input: DeleteOrderInput): Promise<boolean> {
+    return this.ordersService.deleteOrder(input.orderId, input.userId);
   }
 
   @Query(() => [Order])
