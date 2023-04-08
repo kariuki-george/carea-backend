@@ -1,11 +1,11 @@
 import { Module, CacheModule, Global } from '@nestjs/common';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './modules/users/users.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { EmailsModule } from '@/providers/emails/emails.module';
-// import { OrdersModule } from './modules/orders/orders.module';
+import { OrdersModule } from '@/modules/orders/orders.module';
 import { PrismaModule } from 'src/providers/database/prisma.module';
 import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
 import { AuthModule } from './modules/auth/auth.module';
@@ -34,10 +34,11 @@ import { KafkaModule } from './providers/kafka/kafka.module';
     }),
     CacheModule.registerAsync({
       isGlobal: true,
-      useFactory: async () => ({
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
         store: await redisStore({
           ttl: 1000 * 60 * 3,
-          url: 'redis://redis:6379',
+          url: configService.getOrThrow('REDIS_URI'),
         }),
       }),
     }),
@@ -47,9 +48,7 @@ import { KafkaModule } from './providers/kafka/kafka.module';
     InventoryModule,
     KafkaModule,
     EmailsModule,
-    // OrdersModule,
-
-    // StatisticsModule,
+    OrdersModule,
   ],
   providers: [],
 })

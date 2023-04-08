@@ -3,10 +3,13 @@ import {
   OnApplicationShutdown,
   OnModuleInit,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ConsumerSubscribeTopics } from '@nestjs/microservices/external/kafka.interface';
 import { Consumer, ConsumerRunConfig, Kafka } from 'kafkajs';
 @Injectable()
 export class ConsumerService implements OnModuleInit, OnApplicationShutdown {
+  constructor(private readonly configService: ConfigService) {}
+
   async onModuleInit() {
     console.log('Hi from consumer');
   }
@@ -18,7 +21,7 @@ export class ConsumerService implements OnModuleInit, OnApplicationShutdown {
   }
 
   private readonly kafka = new Kafka({
-    brokers: ['broker:9092'],
+    brokers: [this.configService.getOrThrow('KAFKA_URI')],
   });
 
   private readonly consumers: Consumer[] = [];

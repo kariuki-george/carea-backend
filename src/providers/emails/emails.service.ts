@@ -1,4 +1,3 @@
-import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
 
@@ -18,11 +17,6 @@ interface SendEmailInput {
 export class EmailsService {
   constructor(private readonly mailerService: MailerService) {}
 
-  @RabbitSubscribe({
-    exchange: 'EMAIL',
-    routingKey: 'user_verifyEmail',
-    queue: 'EMAIL-VERIFYUSER',
-  })
   async sendUserConfirmation(user: Partial<User>) {
     const url = `http:localhost:3000/auth/verify?token=${user.token}&email=${user.email}`;
     try {
@@ -55,11 +49,6 @@ export class EmailsService {
     //this.rmqService.ack(context);
   }
 
-  @RabbitSubscribe({
-    exchange: 'EMAIL',
-    routingKey: 'user_passwordReset',
-    queue: 'EMAIL-PASSWORDRESET',
-  })
   async sendChangePassword(user: Partial<User>) {
     const url = `http:localhost:3000/auth/change-password?token=${user.token}&email=${user.email}`;
     try {
@@ -78,11 +67,6 @@ export class EmailsService {
     }
   }
 
-  @RabbitSubscribe({
-    exchange: 'OFFER',
-    routingKey: 'OFFERCREATED',
-    queue: 'OFFER-OFFERCREATED',
-  })
   async offerCreatedEmail(data: any) {
     try {
       return await this.sendEmail({
@@ -101,11 +85,6 @@ export class EmailsService {
     }
   }
 
-  @RabbitSubscribe({
-    exchange: 'OFFER',
-    routingKey: 'OFFERUPDATED',
-    queue: 'OFFER-OFFERUPDATED',
-  })
   async offerUpdatedEmail(data: any) {
     try {
       return await this.sendEmail({
