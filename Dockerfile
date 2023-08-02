@@ -1,37 +1,43 @@
-FROM node:16-slim AS deps
-RUN apt-get update
-RUN apt-get install -y openssl libssl-dev
+FROM node:18-alpine AS base
+
+RUN npm i -g pnpm
 
 
-WORKDIR /usr/src/app
+FROM base AS dependencies
+
+WORKDIR /app
+
+COPY package.json  ./ 
+
+RUN pnpm install 
 
 
-COPY prisma ./prisma/
+FROM base AS build 
 
+WORKDIR /app
 
-COPY package.json ./
-
-RUN yarn add glob rimraf
-
-RUN yarn --only=development
 
 COPY . .
 
-RUN yarn build
+COPY --from=dependencies /app/node_modules ./node_modules
 
-FROM  node:16-alpine AS prod
+RUN pnpm prisma generate
 
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
+RUN pnpm build
 
-WORKDIR /usr/src/app
 
-COPY package*.json ./
 
-RUN  yarn  --only=production
+# RUN pnpm prune --prod
 
-COPY . .
+FROM base AS deploy
 
-COPY --from=deps /usr/src/app/dist ./dist
+WORKDIR /app
 
-CMD ["node", "dist/main"]
+COPY --from=build /app/dist ./dist 
+COPY --from=build  /app/node_modules ./node_modules 
+
+EXPOSE 4000
+
+
+CMD ["node", "dist/main.js" ]
+

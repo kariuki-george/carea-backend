@@ -1,65 +1,33 @@
 version: '3.8'
 
 services:
-  dev:
-    container_name: carea-backend
-    build:
-      context: .
-      target: deps
-      dockerfile: ./Dockerfile
-    command: yarn run start:dev
-    env_file:
-      - .env
-
-    ports:
-      - 4000:4000
-
-    networks:
-      - pg-dev
-      - rabbitmq
-      - kafka
-      - redis
-
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
+  carea-backend-api:
+    container_name: carea-backend-api
     restart: unless-stopped
-
-  prod:
-    container_name: carea-backend-prod
-    build:
-      context: .
-      target: prod
-      dockerfile: ./Dockerfile
-    env_file:
-      - .env
+    cpu_count: 1
+    image: carea-backend:latest
+    env_file: ./.env.production.local
 
     networks:
       - pg-dev
-      - rabbitmq
-      - kafka
+      - redpanda
       - traefik
       - redis
 
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    restart: unless-stopped
+    ports:
+      - 56000:4000
     labels:
       - traefik.enable=true
       ## HTTP Routers
-      - traefik.http.routers.carea-api.entrypoints=websecure
       - traefik.http.routers.carea-api.rule=Host(`carea-api.p.kariukigeorge.me`)
+      - traefik.http.routers.carea-api.tls=true
       - traefik.http.routers.carea-api.tls.certresolver=lets-encrypt
-      - traefik.http.services.carea-api.loadbalancer.server.port=3000
-
+      - traefik.port=54500
 networks:
   pg-dev:
     external: true
-  rabbitmq:
-    external: true
 
-  kafka:
+  redpanda:
     external: true
   redis:
     external: true
